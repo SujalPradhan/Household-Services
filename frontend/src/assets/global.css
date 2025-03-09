@@ -1,0 +1,92 @@
+/* Global font settings */
+html, body {
+  font-family: 'Poppins', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6, p, div, span, a, button, input, textarea, select, option {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Color palette */
+:root {
+  --light-gray: #BFC3BA;
+  --medium-gray: #A9ACA9; 
+  --medium-purple: #60495A;
+  --dark-purple: #3F3244;
+  --deep-purple: #2F2235;
+  --background: #60495A;
+  --background-light: #222222;
+  --background-dark: #3F3244;
+}
+
+/* Adjust font weights */
+h1, h2, h3 {
+  font-weight: 600;
+  color: var(--light-gray);
+}
+
+/* Ensure font smoothing for better appearance */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Apply color palette to common elements */
+a {
+  color: var(--medium-purple);
+}
+
+a:hover {
+  color: var(--medium-gray);
+}
+
+.btn-primary {
+  background-color: var(--medium-purple) !important;
+  border-color: var(--medium-purple) !important;
+  border-color: var(--light-gray) !important;
+ 
+}
+
+.btn-primary:hover {
+  background-color: var(--dark-purple) !important;
+  border-color: var(--dark-purple) !important;
+}
+
+.btn-outline-primary {
+  color: var(--light-gray) !important;
+  border-color: var(--light-gray) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--medium-purple) !important;
+  color: white !important;
+}
+
+/* Apply purple background to the entire page */
+body {
+  background-color: var(--background);
+  color: var(--light-gray);
+}
+
+/* Ensure container elements also have the background color */
+.container, .container-fluid {
+  background-color: var(--background);
+}
+
+/* Add some contrast for cards and elements on the background */
+.card, .list-group-item {
+  background-color: var(--background-dark);
+  color: var(--light-gray);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #BFC3BA !important;
+  border: 2px solid #BFC3BA !important;
+}
+
+.btn-outline:hover {
+  background-color: #BFC3BA;
+  color: #60495A !important;
+  
+}

@@ -1,0 +1,104 @@
+# Python backend
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.env
+.venv
+venv/
+ENV/
+env.bak/
+venv.bak/
+instance/
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# Flask web server
+instance/
+.webassets-cache
+
+# Vue.js frontend
+node_modules/
+/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/test/unit/coverage/
+/test/e2e/reports/
+selenium-debug.log
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+*.log
+.editorconfig
+
+# Local configuration files
+config.local.js
+config.local.py
+
+# Migration revisions
+migrations/versions/
+revisions/
+
+# Temporary files
+*.bak
+*.tmp
+*.temp
+.tmp/
+*.swp
+*.swo
+
+# Secrets and keys
+*.key
+*.pem
+*.p12
+*.pfx
+*.cert
+
+# Personal IDE settings
+.history/
+.settings/
+
+# Error logs
+logs/
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

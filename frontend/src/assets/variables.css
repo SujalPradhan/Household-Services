@@ -1,0 +1,33 @@
+:root {
+  /* Main color palette */
+  --primary-color: #60495A;
+  --secondary-color: #3F3244;
+  --dark-color: #2F2235;
+  --light-color: #BFC3BA;
+  --muted-color: #A9ACA9;
+  
+  /* Status colors */
+  --success-color: #28a745;
+  --success-bg: rgba(40, 167, 69, 0.2);
+  --danger-color: #dc3545;
+  --danger-bg: rgba(220, 53, 69, 0.1);
+  --warning-color: #ffc107;
+  --warning-bg: rgba(255, 193, 7, 0.2);
+  --info-color: #17a2b8;
+  --info-bg: rgba(23, 162, 184, 0.2);
+  
+  /* UI element colors */
+  --nav-bg: var(--dark-color);
+  --nav-accent: var(--primary-color);
+  --nav-text: var(--light-color);
+  --nav-active: var(--primary-color);
+  
+  /* Typography */
+  --text-dark: #333333;
+  --text-light: var(--light-color);
+  --text-muted: var(--muted-color);
+  
+  /* Borders and shadows */
+  --border-color: rgba(191, 195, 186, 0.2);
+  --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
