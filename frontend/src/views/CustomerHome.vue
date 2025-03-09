@@ -1,7 +1,12 @@
 <template>
   <div class="customer-dashboard">
     <div class="dashboard-header">
-      <h1>Customer Dashboard</h1>
+      <div class="header-top">
+        <h1>Customer Dashboard</h1>
+        <button @click="logout" class="logout-btn">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
       <div v-if="customer" class="customer-welcome">
         <h2>Welcome, {{ customer.name }}</h2>
         <p>Email: {{ customer.email }}</p>
@@ -89,30 +94,42 @@
           <div class="history-body">
             <p><strong>Professional:</strong> {{ request.professional_name || 'Not assigned' }}</p>
             <p><strong>Requested on:</strong> {{ formatDate(request.date_of_request) }}</p>
+            <p><strong>Price:</strong> <span class="request-price">₹{{ formatPrice(request.price) }}</span></p>
             <p v-if="request.remarks"><strong>Remarks:</strong> {{ request.remarks }}</p>
+          </div>
+          <!-- Add actions based on request status -->
+          <div class="request-actions" v-if="request.status.toLowerCase() === 'accepted'">
+            <button 
+              @click="markRequestAsCompleted(request)" 
+              class="btn btn-success">
+              <i class="fas fa-check-circle"></i> Mark as Completed
+            </button>
+          </div>
+          <div class="request-actions" v-if="request.status.toLowerCase() === 'requested'">
+            <button 
+              @click="cancelRequest(request)" 
+              class="btn btn-danger">
+              <i class="fas fa-times-circle"></i> Cancel Request
+            </button>
           </div>
         </div>
       </div>
     </div>
-
+    
     <!-- Service Details Modal -->
     <div v-if="selectedService" class="modal-overlay" @click.self="closeServiceModal">
       <div class="modal-content">
         <button class="close-btn" @click="closeServiceModal">×</button>
-        
         <div class="service-details">
           <h2>{{ selectedService.name }}</h2>
-          
           <div class="detail-item">
             <span class="detail-label">Price:</span>
             <span class="detail-value price">₹{{ selectedService.price.toFixed(2) }}</span>
           </div>
-          
           <div class="detail-item">
             <span class="detail-label">Service Type:</span>
             <span class="detail-value">{{ selectedService.service_type }}</span>
           </div>
-          
           <div class="detail-item">
             <span class="detail-label">Description:</span>
             <p class="detail-value description">{{ selectedService.description || 'No description provided.' }}</p>
@@ -121,7 +138,6 @@
           <div class="professionals-section" v-if="professionals.length > 0">
             <h3>Available Professionals</h3>
             <p class="select-hint">Select a professional to request this service:</p>
-            
             <div class="professionals-list">
               <div 
                 v-for="professional in professionals" 
@@ -150,14 +166,14 @@
           <div v-else class="no-professionals">
             <p>No professionals available for this service type.</p>
           </div>
-
+          
           <div class="service-request-form" v-if="selectedProfessional">
             <h3>Request Service</h3>
             <div class="form-group">
               <label for="remarks">Additional Notes:</label>
               <textarea 
                 id="remarks" 
-                v-model="requestForm.remarks" 
+                v-model="requestForm.remarks"
                 placeholder="Any special requirements or information..."
                 rows="3"
                 class="form-control"
@@ -172,7 +188,7 @@
             >
               Cancel
             </button>
-            <button 
+            <!-- <button 
               @click="requestService" 
               class="btn btn-primary"
               :disabled="!selectedProfessional || requestProcessing"
@@ -183,17 +199,17 @@
               <span v-else>
                 Request Service
               </span>
-            </button>
+            </button> -->
           </div>
         </div>
       </div>
     </div>
-
+    
     <!-- Quick Service Request Modal -->
     <div v-if="quickRequestService" class="modal-overlay" @click.self="closeQuickRequestModal">
       <div class="modal-content">
         <button class="close-btn" @click="closeQuickRequestModal">×</button>
-        <service-request-form 
+        <service-request-form
           :service="quickRequestService"
           @success="handleRequestSuccess"
           @error="handleRequestError"
@@ -201,7 +217,39 @@
         />
       </div>
     </div>
-
+    
+    <!-- Status Update Modal -->
+    <div v-if="statusUpdateRequest" class="modal-overlay" @click.self="closeStatusUpdateModal">
+      <div class="modal-content">
+        <button class="close-btn" @click="closeStatusUpdateModal">×</button>
+        <h2>{{ statusUpdateAction.title }}</h2>
+        <p>{{ statusUpdateAction.message }}</p>
+        
+        <div class="form-group" v-if="statusUpdateAction.showRemarks">
+          <label for="statusUpdateRemarks">Additional Comments:</label>
+          <textarea
+            id="statusUpdateRemarks"
+            v-model="statusUpdateForm.remarks"
+            class="form-control"
+            placeholder="Add any feedback or comments about the service..."
+          ></textarea>
+        </div>
+        
+        <div class="modal-actions">
+          <button @click="closeStatusUpdateModal" class="btn btn-secondary">Cancel</button>
+          <button 
+            @click="submitStatusUpdate" 
+            class="btn"
+            :class="statusUpdateAction.btnClass"
+            :disabled="statusUpdateProcessing"
+          >
+            <i class="fas" :class="statusUpdateProcessing ? 'fa-spinner fa-spin' : statusUpdateAction.btnIcon"></i>
+            {{ statusUpdateAction.btnText }}
+          </button>
+        </div>
+      </div>
+    </div>
+    
     <!-- Notification Toast -->
     <div v-if="notification.show" class="toast" :class="notification.type">
       <div class="toast-content">
@@ -225,6 +273,7 @@ export default {
   },
   data() {
     return {
+      isInitialLoad: true,
       customer: null,
       searchQuery: '',
       availableServices: [],
@@ -247,18 +296,28 @@ export default {
       },
       serviceRequests: [],
       loadingRequests: true,
-      quickRequestService: null
+      quickRequestService: null,
+      statusUpdateRequest: null,
+      statusUpdateAction: {
+        title: '',
+        message: '',
+        status: '',
+        btnText: '',
+        btnIcon: '',
+        btnClass: '',
+        showRemarks: false
+      },
+      statusUpdateForm: {
+        remarks: ''
+      },
+      statusUpdateProcessing: false
     };
-  },
-  async created() {
-    this.fetchDashboardData();
   },
   methods: {
     async fetchDashboardData() {
       try {
         this.loading = true;
         this.loadingRequests = true;
-        
         const token = sessionStorage.getItem('Authorization');
         if (!token) {
           throw new Error('Authorization token not found');
@@ -300,7 +359,7 @@ export default {
       
       const query = this.searchQuery.toLowerCase();
       this.filteredServices = this.availableServices.filter(service => 
-        service.name.toLowerCase().includes(query) ||
+        service.name.toLowerCase().includes(query) || 
         (service.description && service.description.toLowerCase().includes(query))
       );
     },
@@ -319,7 +378,6 @@ export default {
             Authorization: sessionStorage.getItem('Authorization')
           }
         });
-        
         this.professionals = response.data.professionals;
       } catch (error) {
         console.error("Error fetching professionals:", error);
@@ -346,7 +404,6 @@ export default {
             Authorization: sessionStorage.getItem('Authorization')
           }
         });
-        
         this.professionals = response.data.professionals;
       } catch (error) {
         console.error("Error fetching professionals:", error);
@@ -386,7 +443,6 @@ export default {
       }
       
       this.requestProcessing = true;
-      
       try {
         const response = await axios.post('http://127.0.0.1:5000/customer/services', {
           service_id: this.selectedService.id,
@@ -441,7 +497,6 @@ export default {
     
     formatDate(dateString) {
       if (!dateString) return 'N/A';
-      
       const date = new Date(dateString);
       return new Intl.DateTimeFormat('en-US', {
         year: 'numeric',
@@ -470,15 +525,14 @@ export default {
       if (this.notification.timeout) {
         clearTimeout(this.notification.timeout);
       }
-      
       this.notification = {
         show: true,
         message: options.message,
-        type: options.type || 'success',
-        timeout: setTimeout(() => {
-          this.notification.show = false;
-        }, 5000)
+        type: options.type || 'success'
       };
+      this.notification.timeout = setTimeout(() => {
+        this.notification.show = false;
+      }, 3000);
     },
     
     closeNotification() {
@@ -497,7 +551,126 @@ export default {
         default:
           return 'fas fa-info-circle';
       }
+    },
+    
+    markRequestAsCompleted(request) {
+      this.statusUpdateRequest = request;
+      this.statusUpdateForm.remarks = '';
+      this.statusUpdateAction = {
+        title: 'Mark Service as Completed',
+        message: `Are you sure you want to mark the service "${request.service_name}" as completed?`,
+        status: 'COMPLETED',
+        btnText: 'Mark as Completed',
+        btnClass: 'btn-success',
+        btnIcon: 'fa-check-circle',
+        showRemarks: true
+      };
+    },
+    
+    cancelRequest(request) {
+      this.statusUpdateRequest = request;
+      this.statusUpdateForm.remarks = '';
+      this.statusUpdateAction = {
+        title: 'Cancel Service Request',
+        message: `Are you sure you want to cancel the service request for "${request.service_name}"?`,
+        status: 'CANCELLED',
+        btnText: 'Cancel Request',
+        btnClass: 'btn-danger',
+        btnIcon: 'fa-times-circle',
+        showRemarks: true
+      };
+    },
+    
+    closeStatusUpdateModal() {
+      this.statusUpdateRequest = null;
+      this.statusUpdateForm.remarks = '';
+      this.statusUpdateProcessing = false;
+    },
+    
+    async submitStatusUpdate() {
+      if (!this.statusUpdateRequest) return;
+      
+      this.statusUpdateProcessing = true;
+      try {
+        const token = sessionStorage.getItem('Authorization');
+        if (!token) {
+          throw new Error('Not authenticated');
+        }
+        
+        await axios.put(`http://127.0.0.1:5000/customer/services/${this.statusUpdateRequest.id}`, {
+          service_status: this.statusUpdateAction.status,
+          remarks: this.statusUpdateForm.remarks
+        }, {
+          headers: {
+            Authorization: token
+          }
+        });
+        
+        this.showNotification({
+          message: `Service request has been ${this.statusUpdateAction.status.toLowerCase()} successfully!`,
+          type: 'success'
+        });
+        
+        // Close the modal
+        this.closeStatusUpdateModal();
+        
+        // Refresh dashboard data
+        await this.fetchDashboardData();
+      } catch (error) {
+        console.error("Error updating service request status:", error);
+        this.showNotification({
+          message: error.response?.data?.error || error.message || "Failed to update service request status",
+          type: 'error'
+        });
+      } finally {
+        this.statusUpdateProcessing = false;
+      }
+    },
+    formatPrice(price) {
+      return price ? parseFloat(price).toFixed(2) : '0.00';
+    },
+    logout() {
+      // Clear authentication token
+      sessionStorage.removeItem('Authorization');
+      
+      // Call logout endpoint
+      axios.post('http://127.0.0.1:5000/signout')
+        .catch(err => console.error("Logout error:", err));
+      
+      // Set refresh flag before redirecting
+      sessionStorage.setItem('dashboard_refreshed', 'false');
+      
+      // Redirect to landing page instead of login
+      this.$router.push('/');
+    },
+    handleAuthChange(event) {
+      if (event.detail.isAuthenticated) {
+        // If user just authenticated, mark for refresh
+        sessionStorage.setItem('dashboard_refreshed', 'false');
+      }
     }
+  },
+  mounted() {
+    // Check if this is the initial page load or a refresh
+    const hasRefreshed = sessionStorage.getItem('dashboard_refreshed');
+    
+    if (!hasRefreshed && this.isInitialLoad) {
+      // Set the flag to prevent infinite refresh loop
+      sessionStorage.setItem('dashboard_refreshed', 'true');
+      // Reload the entire page to remount App.vue
+      window.location.reload();
+    } else {
+      // Clear the flag for next visit
+      sessionStorage.removeItem('dashboard_refreshed');
+      // Fetch dashboard data
+      this.fetchDashboardData();
+    }
+    
+    // Listen for global auth changes
+    window.addEventListener('global-auth-change', this.handleAuthChange);
+  },
+  beforeDestroy() {
+    window.removeEventListener('global-auth-change', this.handleAuthChange);
   }
 };
 </script>
@@ -669,6 +842,7 @@ h1, h2, h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 2px solid var(--primary-color);
 }
 
 .history-header h3 {
@@ -872,53 +1046,114 @@ h1, h2, h3 {
 }
 
 .btn {
-  padding: 8px 15px;
-  border-radius: 5px;
-  font-weight: 500;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   border: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  letter-spacing: 0.3px;
+  min-width: 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.btn:hover:before {
+  left: 100%;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn-primary {
-  background-color: var(--primary-color);
+  background: linear-gradient(135deg, #7e57c2, #60495A);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #50384a;
+  background: linear-gradient(135deg, #8e67d2, #70596A);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #29b6f6, #0288d1);
+  color: white;
+}
+
+.btn-info:hover {
+  background: linear-gradient(135deg, #39c6ff, #1298e1);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5cb860, #3e8d42);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f55a4e, #e33e3e);
 }
 
 .btn-secondary {
-  background-color: #6c757d;
+  background: linear-gradient(135deg, #78909c, #546e7a);
   color: white;
 }
 
 .btn-secondary:hover {
-  background-color: #5a6268;
-}
-
-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+  background: linear-gradient(135deg, #8ca0ac, #647c8a);
 }
 
 /* Loading States */
-.loading-container, 
-.loading-professionals {
+.loading-container, .loading-professionals {
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   padding: 30px 0;
 }
 
 .spinner {
-  border: 4px solid rgba(96, 73, 90, 0.3);
-  border-radius: 50%;
-  border-top: 4px solid var(--primary-color);
   width: 40px;
   height: 40px;
+  border: 4px solid rgba(96, 73, 90, 0.3);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 15px;
 }
@@ -935,14 +1170,12 @@ button:disabled {
 }
 
 /* Empty States */
-.no-services, 
-.no-history, 
-.no-professionals {
-  padding: 40px;
-  text-align: center;
-  background-color: var(--dark-color);
-  border-radius: 8px;
+.no-history, .no-services, .no-professionals {
   color: var(--muted-color);
+  border-radius: 8px;
+  background-color: var(--dark-color);
+  text-align: center;
+  padding: 40px;
 }
 
 /* Toast Notification */
@@ -983,8 +1216,8 @@ button:disabled {
 }
 
 .toast-content i {
-  margin-right: 10px;
   font-size: 1.2rem;
+  margin-right: 10px;
 }
 
 .toast.success i {
@@ -997,28 +1230,44 @@ button:disabled {
 
 .toast-close {
   cursor: pointer;
-  padding: 5px;
 }
 
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .services-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .professionals-list {
-    grid-template-columns: 1fr;
-  }
-  
-  .modal-content {
-    width: 95%;
-    padding: 20px;
-  }
+/* Add header styling for logout button */
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
-.quick-request-form {
-  margin-top: 20px;
-  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-  padding-top: 20px;
+.logout-btn {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #f55a4e, #e33e3e);
+}
+
+.request-price {
+  color: #8e67d2;
+  font-weight: bold;
+  background-color: rgba(142, 103, 210, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  border: 1px solid rgba(142, 103, 210, 0.3);
 }
 </style>

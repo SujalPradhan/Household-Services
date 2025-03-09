@@ -30,9 +30,28 @@ export default {
       required: true
     }
   },
+  created() {
+    // Close modal if user is logged in
+    this.checkAuth();
+  },
   methods: {
     closeModal() {
       this.$emit('close');
+    },
+    checkAuth() {
+      const token = sessionStorage.getItem('Authorization');
+      if (token && this.show) {
+        // If user is authenticated but modal is showing, close it
+        this.closeModal();
+      }
+    }
+  },
+  watch: {
+    // Monitor show prop to check authentication
+    show(newVal) {
+      if (newVal) {
+        this.checkAuth();
+      }
     }
   }
 };

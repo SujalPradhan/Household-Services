@@ -94,6 +94,13 @@ export default {
       loading: false
     };
   },
+  created() {
+    // Redirect if user is already logged in
+    const token = sessionStorage.getItem('Authorization');
+    if (token) {
+      this.redirectBasedOnRole();
+    }
+  },
   methods: {
     async login() {
       this.loading = true;
@@ -103,7 +110,7 @@ export default {
           password: this.password
         });
 
-        console.log("Full Response:", response.data); // Log entire response
+        console.log("Full Response:", response.data);
 
         if (!response.data || !response.data.user) {
           throw new Error("Invalid response from server");
@@ -111,25 +118,35 @@ export default {
 
         let user = response.data.user;
         
-        // Remove the alert and store token properly
+        // Store token properly
         sessionStorage.setItem("Authorization", user.authentication_token);
         
-        // localStorage.setItem('Authorization', user.authentication_token);
-        console.log(user.role)
-        if (user.role === "customer") {
-          this.$router.push('/customer');
-        } else if (user.role === "professional") {
-          this.$router.push('/professional-dashboard');
-        } else if (user.role === "admin") {
-          this.$router.push('/admin/home');
-        } else {
-          this.$router.push('/');
-        }
+        console.log("User role:", user.role);
+        
+        // Navigate based on role
+        this.redirectBasedOnRole(user);
       } catch (error) {
         console.error("Login Error:", error);
         alert(error.response?.data?.error || error.message || "Login failed");
       } finally {
         this.loading = false;
+      }
+    },
+    redirectBasedOnRole(user) {
+      // If user object is provided, use that role, otherwise check from storage
+      if (user) {
+        if (user.role === "customer") {
+          this.$router.push('/customer');
+        } else if (user.role === "professional") {
+          this.$router.push('/professional');
+        } else if (user.role === "admin") {
+          this.$router.push('/admin/home');
+        } else {
+          this.$router.push('/');
+        }
+      } else {
+        // Default redirect if no user data is available
+        this.$router.push('/');
       }
     }
   }

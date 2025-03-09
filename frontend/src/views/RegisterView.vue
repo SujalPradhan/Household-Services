@@ -181,7 +181,8 @@ export default {
       this.errorMessage = '';
 
       try {
-        const response = await axios.post('http://127.0.0.1:5000/signup', {
+        // Register the user
+        const registerResponse = await axios.post('http://127.0.0.1:5000/signup', {
           email: this.formData.email,
           password: this.formData.password,
           role: 'customer', // Explicitly set role as customer
@@ -189,16 +190,37 @@ export default {
           pincode: this.formData.pincode
         });
 
-        console.log('Registration successful:', response.data);
+        console.log('Registration successful:', registerResponse.data);
         
-        // Navigate to login page with success message
-        this.$router.push({
-          path: '/login',
-          query: { registrationSuccess: true, userType: 'customer' }
+        // After successful registration, automatically log in the user
+        const loginResponse = await axios.post('http://127.0.0.1:5000/signin', {
+          email: this.formData.email,
+          password: this.formData.password
         });
+        
+        // Store the authentication token
+        if (loginResponse.data.user && loginResponse.data.user.authentication_token) {
+          sessionStorage.setItem('Authorization', loginResponse.data.user.authentication_token);
+          
+          // Set refresh flag before redirecting
+          sessionStorage.setItem('dashboard_refreshed', 'false');
+          
+          // Navigate directly to the customer dashboard
+          this.$router.push('/customer');
+        } else {
+          throw new Error('Authentication token not received');
+        }
       } catch (error) {
         console.error('Registration Error:', error);
         this.errorMessage = error.response?.data?.error || error.message || 'Registration failed';
+        
+        // If auto-login fails, redirect to login page
+        if (error.message === 'Authentication token not received') {
+          this.$router.push({
+            path: '/login',
+            query: { registrationSuccess: true, userType: 'customer' }
+          });
+        }
       } finally {
         this.loading = false;
       }

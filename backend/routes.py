@@ -114,9 +114,10 @@ class SignIn(Resource):
         elif role == "professional":
             professional = ServiceProfessional.query.filter_by(user_id=user.id).first()
             if professional:
+                # Convert ServiceTypeEnum to string before including in response
                 user_data.update({
                     "name": professional.name,
-                    "service_type": professional.service_type,
+                    "service_type": professional.service_type.name if professional.service_type else None,
                     "experience": professional.experience,
                     "description": professional.description,
                     "approved": professional.approved,

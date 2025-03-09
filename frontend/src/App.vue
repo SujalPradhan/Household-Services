@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <!-- Show navbar only when user is not logged in -->
-    <nav class="main-nav" v-if="!isAuthenticated">
+    <!-- Show navbar only when user is not logged in and not on HomeView -->
+    <nav class="main-nav" v-if="!isAuthenticated && !isHomeView">
       <div class="nav-container">
         <router-link to="/" class="nav-logo">UrbanAid</router-link>
         <div class="nav-links">
@@ -37,20 +37,28 @@ export default {
       isAuthenticated: false
     };
   },
+  computed: {
+    // Check if current route is HomeView
+    isHomeView() {
+      return this.$route.name === 'HomeView';
+    }
+  },
   created() {
     // Check authentication status when component is created
     this.checkAuth();
     
     // Listen for auth changes (login/logout)
     window.addEventListener('storage', this.handleStorageChange);
-    
-    // Custom event for auth changes within the same window
-    window.addEventListener('auth-change', this.checkAuth);
+  },
+  watch: {
+    // Watch for route changes to update authentication status
+    '$route'() {
+      this.checkAuth();
+    }
   },
   beforeDestroy() {
     // Clean up event listeners
     window.removeEventListener('storage', this.handleStorageChange);
-    window.removeEventListener('auth-change', this.checkAuth);
   },
   methods: {
     checkAuth() {
@@ -63,6 +71,10 @@ export default {
       if (event.key === 'Authorization') {
         this.checkAuth();
       }
+    },
+    // Method for child components to call
+    openRegisterModal() {
+      this.showRegisterModal = true;
     }
   }
 };

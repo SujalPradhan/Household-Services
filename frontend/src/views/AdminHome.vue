@@ -25,7 +25,6 @@ export default {
     logout() {
       // Clear authentication token
       sessionStorage.removeItem('Authorization');
-      
       // Call logout endpoint if needed
       axios.post('http://127.0.0.1:5000/signout')
         .catch(err => console.error("Logout error:", err));

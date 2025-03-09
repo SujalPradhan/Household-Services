@@ -3,12 +3,26 @@ from flask_security import Security
 from flask_restful import Api
 from flask_cors import CORS
 from flask_security.utils import hash_password
-
-from models import db, user_datastore, Admin
+from json import JSONEncoder
+from models import db, user_datastore, Admin, ServiceTypeEnum, ServiceStatusEnum
 from config import localdev
+
+# Define the JSON encoder directly in this file
+class CustomJSONEncoder(JSONEncoder):
+    """Custom JSON encoder that can handle our Enum types."""
+    
+    def default(self, obj):
+        if isinstance(obj, (ServiceTypeEnum, ServiceStatusEnum)):
+            # Return the enum's name (string representation)
+            return obj.name
+        # Let the parent class handle anything else
+        return super().default(obj)
 
 app = Flask(__name__)
 app.config.from_object(localdev)
+
+# Set the custom JSON encoder for our Flask app
+app.json_encoder = CustomJSONEncoder
 
 # Initialize extensions
 db.init_app(app)
@@ -31,7 +45,7 @@ api.add_resource(CustomerDashboard, "/customer/dashboard")
 api.add_resource(CustomerServices, "/customer/services", "/customer/services/<int:request_id>")
 api.add_resource(SearchServices, "/customer/search-services")
 api.add_resource(SearchProfessionals, "/admin/search-professionals")
-api.add_resource(ProfessionalsByServiceType, "/service/<int:service_id>/professionals")  # Add this line
+api.add_resource(ProfessionalsByServiceType, "/service/<int:service_id>/professionals") 
 api.add_resource(adminDashboard, "/admin/dashboard")
 api.add_resource(adminService, "/admin/service", "/admin/service/<int:service_id>")
 api.add_resource(adminCustomers, "/admin/customers", "/admin/customers/<int:user_id>")

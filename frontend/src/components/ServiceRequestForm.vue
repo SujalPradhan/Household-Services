@@ -6,6 +6,21 @@
       <div class="form-group">
         <label for="price">Price (₹)</label>
         <div class="price-display">{{ displayPrice }}</div>
+        <div class="price-adjustment">
+          <label for="priceAdjustment">Adjust the Price (optional)</label>
+          <div class="slider-container">
+            <input 
+              type="range" 
+              id="priceAdjustment" 
+              v-model="priceAdjustment" 
+              min="0" 
+              max="20000" 
+              step="50" 
+              class="form-range"
+            >
+            <span class="slider-value">+₹{{ priceAdjustment }}</span>
+          </div>
+        </div>
         <input type="hidden" v-model="formData.price">
       </div>
       
@@ -115,12 +130,15 @@ export default {
       professionals: [],
       loading: false,
       error: null,
-      submitting: false
+      submitting: false,
+      basePrice: 0,
+      priceAdjustment: 0
     };
   },
   computed: {
     displayPrice() {
-      return `₹${parseFloat(this.formData.price).toFixed(2)}`;
+      const totalPrice = parseFloat(this.basePrice) + parseFloat(this.priceAdjustment);
+      return `₹${totalPrice.toFixed(2)}`;
     },
     selectedProfessional() {
       if (!this.formData.professional_id) return null;
@@ -133,9 +151,15 @@ export default {
       handler(newService) {
         if (newService && newService.id) {
           this.formData.service_id = newService.id;
+          this.basePrice = newService.price;
           this.formData.price = newService.price;
           this.fetchProfessionals(newService.id);
         }
+      }
+    },
+    priceAdjustment: {
+      handler(newValue) {
+        this.formData.price = parseFloat(this.basePrice) + parseFloat(newValue);
       }
     }
   },
@@ -215,8 +239,9 @@ export default {
         professional_id: '',
         preferred_date: this.getTomorrowFormatted(),
         remarks: '',
-        price: this.service.price
+        price: this.basePrice
       };
+      this.priceAdjustment = 0;
     },
     
     cancel() {
@@ -270,11 +295,13 @@ label {
 .price-display {
   font-size: 1.5rem;
   font-weight: bold;
-  color: var(--primary-color, #60495A);
+  color: #f8f9fa;
   padding: 10px;
   border-radius: 5px;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #221728;
+  border: 2px solid var(--primary-color, #60495A);
   display: inline-block;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .professional-info {
@@ -373,5 +400,58 @@ label {
 .bg-primary {
   background-color: var(--primary-color, #60495A);
   color: white;
+}
+
+.price-adjustment {
+  margin-top: 10px;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.form-range {
+  flex: 1;
+  height: 8px;
+  background: var(--border-color, #333);
+  outline: none;
+  opacity: 0.7;
+  transition: opacity .2s;
+  border-radius: 4px;
+}
+
+.form-range:hover {
+  opacity: 1;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #8e67d2;
+  cursor: pointer;
+  border: 2px solid #f8f9fa;
+}
+
+.form-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #8e67d2;
+  cursor: pointer;
+  border: 2px solid #f8f9fa;
+}
+
+.slider-value {
+  min-width: 60px;
+  font-weight: 600;
+  color: #f8f9fa;
+  background-color: var(--primary-color, #60495A);
+  padding: 3px 10px;
+  border-radius: 15px;
+  text-align: center;
 }
 </style>

@@ -9,6 +9,9 @@ import AdminDashboard from '../views/AdminDashboard.vue';
 import AdminService from '../views/AdminService.vue';
 import AdminCustomers from '../views/AdminCustomers.vue';
 import AdminProfessional from '../views/AdminProfessional.vue';
+import ProfessionalHome from '../views/ProfessionalHome.vue';
+import ServiceRequests from '../views/ServiceRequests.vue';
+import ProfessionalProfile from '../views/ProfessionalProfile.vue';
 import TestPage from '../views/TestPage.vue';
 
 const routes = [
@@ -29,6 +32,16 @@ const routes = [
       { path: 'professionals', name: 'AdminProfessional', component: AdminProfessional },
     ]
   },
+  {
+    path: '/professional',
+    name: 'ProfessionalHome',
+    component: ProfessionalHome,
+    children: [
+      { path: '', redirect: { name: 'ServiceRequests' } },
+      { path: 'requests', name: 'ServiceRequests', component: ServiceRequests },
+      { path: 'profile', name: 'ProfessionalProfile', component: ProfessionalProfile },
+    ]
+  },
   { path: '/test', name: 'TestPage', component: TestPage }
 ];
 
@@ -37,14 +50,25 @@ const router = createRouter({
   routes
 });
 
-// Navigation guard to protect admin routes
+// Navigation guard to protect routes
 router.beforeEach((to, from, next) => {
   const token = sessionStorage.getItem('Authorization');
   
-  if (to.path.startsWith('/admin') && !token) {
-    console.log('Authentication required for admin routes - redirecting to login');
+  // Protected routes that need authentication
+  if ((to.path.startsWith('/admin') || 
+      to.path.startsWith('/professional') || 
+      to.path.startsWith('/customer')) && !token) {
+    console.log('Authentication required - redirecting to login');
     next('/login');
-  } else {
+  } 
+  // Redirect logged-in users away from login/register pages
+  else if ((to.path === '/login' || to.path === '/register' || 
+           to.path === '/register-professional') && token) {
+    console.log('Already logged in - redirecting to dashboard');
+    // Redirect based on user role (would need to check role from API or storage)
+    next('/');
+  }
+  else {
     next();
   }
 });
