@@ -1,6 +1,8 @@
 <template>
   <div class="professional-profile">
-    <h2>My Profile</h2>
+    <div class="page-header">
+      <h1>My Profile</h1>
+    </div>
     
     <div v-if="loading" class="loading-container">
       <div class="spinner"></div>
@@ -8,49 +10,46 @@
     </div>
     
     <div v-else-if="error" class="error-message">
-      {{ error }}
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>{{ error }}</span>
     </div>
     
-    <div v-else class="profile-card">
-      <div class="profile-header">
-        <h3>{{ profile.name }}</h3>
-        <div class="status-pills">
-          <span class="status-pill" :class="{ 'approved': profile.approved }">
-            {{ profile.approved ? 'Approved' : 'Pending Approval' }}
-          </span>
-          <span v-if="profile.blocked" class="status-pill blocked">
-            Blocked
-          </span>
+    <div v-else class="profile-container">
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="profile-info">
+            <h2>{{ profile.name }}</h2>
+            <div class="profile-service">{{ profile.service_type }}</div>
+          </div>
+          <div class="status-pills">
+            <span class="status-pill" :class="{ 'approved': profile.approved }">
+              {{ profile.approved ? 'Approved' : 'Pending Approval' }}
+            </span>
+            <span v-if="profile.blocked" class="status-pill blocked">
+              Blocked
+            </span>
+          </div>
+        </div>
+        
+        <div class="profile-body">
+          <div class="profile-field">
+            <span class="field-label"><i class="fas fa-envelope"></i> Email</span>
+            <span class="field-value">{{ profile.email }}</span>
+          </div>
+          
+          <div class="profile-field">
+            <span class="field-label"><i class="fas fa-briefcase"></i> Experience</span>
+            <span class="field-value">{{ profile.experience }} years</span>
+          </div>
+          
+          <div class="profile-field">
+            <span class="field-label"><i class="fas fa-file-alt"></i> Description</span>
+            <p class="field-value description">{{ profile.description || 'No description provided.' }}</p>
+          </div>
         </div>
       </div>
       
-      <div class="profile-body">
-        <div class="profile-field">
-          <span class="field-label">Email:</span>
-          <span class="field-value">{{ profile.email }}</span>
-        </div>
-        
-        <div class="profile-field">
-          <span class="field-label">Service Type:</span>
-          <span class="field-value">{{ profile.service_type }}</span>
-        </div>
-        
-        <div class="profile-field">
-          <span class="field-label">Experience:</span>
-          <span class="field-value">{{ profile.experience }} years</span>
-        </div>
-        
-        <div class="profile-field">
-          <span class="field-label">Description:</span>
-          <p class="field-value description">{{ profile.description || 'No description provided.' }}</p>
-        </div>
-      </div>
-    </div>
-    
-    <div class="profile-actions">
-      <button class="btn btn-primary" @click="editProfile" :disabled="!profile || loading">
-        <i class="fas fa-edit"></i> Edit Profile
-      </button>
+      <!-- Edit Profile button removed -->
     </div>
     
     <!-- Toast Notification -->
@@ -67,6 +66,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'ProfessionalProfile',
   data() {
@@ -91,14 +92,16 @@ export default {
       this.error = null;
       
       try {
-        // Get profile from session storage
-        const userString = sessionStorage.getItem('user');
-        if (!userString) {
-          throw new Error('User information not found');
-        }
+        // Try different session storage keys that might contain the user data
+        const userData = this.getUserDataFromSession();
         
-        const userData = JSON.parse(userString);
-        this.profile = userData;
+        if (userData) {
+          this.profile = userData;
+          console.log('Profile data retrieved from session storage:', userData);
+        } else {
+          // If no data in session storage, fetch from API
+          await this.fetchProfileFromAPI();
+        }
       } catch (error) {
         console.error('Error loading profile:', error);
         this.error = 'Failed to load profile information. Please try again later.';
@@ -107,13 +110,53 @@ export default {
       }
     },
     
-    editProfile() {
-      // Show message - in a real app, this would open an edit form
-      this.showNotification({
-        message: 'Profile editing feature is coming soon!',
-        type: 'info'
-      });
+    getUserDataFromSession() {
+      // Try different possible keys for the user data
+      const possibleKeys = ['user', 'userData', 'userInfo', 'profileData'];
+      
+      for (const key of possibleKeys) {
+        const dataString = sessionStorage.getItem(key);
+        if (dataString) {
+          try {
+            return JSON.parse(dataString);
+          } catch (e) {
+            console.warn(`Found data in ${key} but failed to parse:`, e);
+          }
+        }
+      }
+      
+      // Check if the data is stored in the 'Authorization' header
+      const token = sessionStorage.getItem('Authorization');
+      if (token) {
+        console.log('Found authorization token, will try API request');
+      }
+      
+      return null;
     },
+    
+    async fetchProfileFromAPI() {
+      const token = sessionStorage.getItem('Authorization');
+      if (!token) {
+        throw new Error('Authorization token not found');
+      }
+      
+      const response = await axios.get('http://127.0.0.1:5000/professional/profile', {
+        headers: {
+          'Authorization': token
+        }
+      });
+      
+      if (response.data) {
+        this.profile = response.data;
+        // Save the data for future use
+        sessionStorage.setItem('userData', JSON.stringify(response.data));
+        console.log('Profile data fetched from API and saved to session storage');
+      } else {
+        throw new Error('No profile data received from API');
+      }
+    },
+    
+    // editProfile method removed
     
     // Notification methods
     showNotification(options) {
@@ -152,8 +195,28 @@ export default {
 <style scoped>
 .professional-profile {
   color: var(--light-color);
-  max-width: 800px;
-  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 25px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  position: relative;
+  color: var(--light-color);
+}
+
+.page-header h1:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 60px;
+  height: 3px;
+  background: var(--primary-color);
 }
 
 .loading-container {
@@ -161,17 +224,17 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 60px 20px;
 }
 
 .spinner {
-  border: 4px solid rgba(96, 73, 90, 0.3);
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(96, 73, 90, 0.2);
+  border-top: 4px solid var(--primary-color, #60495A);
   border-radius: 50%;
-  border-top: 4px solid var(--primary-color);
-  width: 40px;
-  height: 40px;
   animation: spin 1s linear infinite;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 @keyframes spin {
@@ -180,35 +243,55 @@ export default {
 }
 
 .error-message {
-  padding: 15px;
+  padding: 20px;
   background-color: rgba(220, 53, 69, 0.1);
-  border: 1px solid rgba(220, 53, 69, 0.2);
+  border-left: 4px solid #dc3545;
   color: #dc3545;
-  border-radius: 5px;
+  border-radius: 8px;
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.error-message i {
+  font-size: 1.5rem;
+}
+
+.profile-container {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .profile-card {
-  background-color: #2F2235;
-  border-radius: 8px;
+  background-color: var(--dark-color, #2F2235);
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  margin-bottom: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .profile-header {
-  background-color: #221728;
-  padding: 20px;
+  background-color: rgba(0,0,0,0.2);
+  padding: 25px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.profile-header h3 {
-  margin: 0;
-  font-size: 1.5rem;
+.profile-info h2 {
+  margin: 0 0 5px 0;
+  font-size: 1.8rem;
   color: var(--light-color);
+}
+
+.profile-service {
+  display: inline-block;
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 1.1rem;
 }
 
 .status-pills {
@@ -217,12 +300,14 @@ export default {
 }
 
 .status-pill {
-  padding: 5px 10px;
+  padding: 6px 14px;
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: bold;
+  text-transform: uppercase;
   background-color: #6c757d;
   color: white;
+  letter-spacing: 0.5px;
 }
 
 .status-pill.approved {
@@ -234,56 +319,78 @@ export default {
 }
 
 .profile-body {
-  padding: 20px;
+  padding: 25px;
 }
 
 .profile-field {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 20px;
+}
+
+.profile-field:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .field-label {
   display: block;
-  font-weight: bold;
+  font-weight: 600;
   color: var(--light-color);
-  margin-bottom: 5px;
+  margin-bottom: 10px;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-label i {
+  color: var(--primary-color);
 }
 
 .field-value {
   color: var(--muted-color);
+  font-size: 1.1rem;
 }
 
 .field-value.description {
   white-space: pre-line;
   line-height: 1.6;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 10px;
 }
 
-.profile-actions {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-}
+/* Remove profile-actions style since button is gone */
 
+/* Keep other button styles for potential future use */
 .btn {
-  padding: 10px 15px;
+  padding: 12px 24px;
+  border-radius: 8px;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary {
-  background-color: var(--primary-color);
+  background: linear-gradient(135deg, #7e57c2, #60495A);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #4d3a49;
+  background: linear-gradient(135deg, #8e67d2, #70596A);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-.btn:disabled {
+.btn-primary:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -291,18 +398,18 @@ export default {
 /* Toast Notification */
 .toast {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 30px;
+  right: 30px;
   min-width: 300px;
   max-width: 400px;
   background-color: white;
   color: #333;
-  border-radius: 5px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.25);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
+  padding: 18px;
   animation: slideIn 0.3s ease-in-out;
   z-index: 1001;
 }
@@ -313,15 +420,15 @@ export default {
 }
 
 .toast.success {
-  border-left: 4px solid #28a745;
+  border-left: 5px solid #28a745;
 }
 
 .toast.error {
-  border-left: 4px solid #dc3545;
+  border-left: 5px solid #dc3545;
 }
 
 .toast.info {
-  border-left: 4px solid #17a2b8;
+  border-left: 5px solid #17a2b8;
 }
 
 .toast-content {
@@ -330,12 +437,44 @@ export default {
 }
 
 .toast-content i {
-  margin-right: 10px;
-  font-size: 1.2rem;
+  margin-right: 12px;
+  font-size: 1.3rem;
+}
+
+.toast.success i {
+  color: #28a745;
+}
+
+.toast.error i {
+  color: #dc3545;
+}
+
+.toast.info i {
+  color: #17a2b8;
 }
 
 .toast-close {
   cursor: pointer;
   padding: 5px;
+  transition: opacity 0.3s;
+}
+
+.toast-close:hover {
+  opacity: 0.7;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .status-pills {
+    align-self: flex-start;
+  }
+  
+  /* Remove profile-actions media query */
 }
 </style>

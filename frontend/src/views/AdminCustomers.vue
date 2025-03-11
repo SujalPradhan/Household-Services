@@ -165,14 +165,24 @@ export default {
           throw new Error('No authorization token found');
         }
         
-        // Fix: Make sure to use the correct token format
-        const response = await axios.put(`http://127.0.0.1:5000/admin/customers/${customer.user_id}`, {}, {
-          headers: {
-            'Authorization': token // Remove 'Bearer ' prefix
-          }
-        });
+        console.log(`Sending request to toggle customer ${customer.id} status from ${customer.active} to ${!customer.active}`);
         
-        // Update local data
+        // Send the updated active status - toggle the current value
+        const response = await axios.put(
+          `http://127.0.0.1:5000/admin/customers/${customer.id}`, 
+          {
+            active: !customer.active
+          },
+          {
+            headers: {
+              'Authorization': token
+            }
+          }
+        );
+        
+        console.log('API Response:', response.data);
+        
+        // Update local data only after successful API response
         customer.active = !customer.active;
         
         // Show success notification
@@ -182,8 +192,15 @@ export default {
         });
       } catch (error) {
         console.error('Error toggling customer status:', error);
+        let errorMsg = 'Failed to update customer status';
+        
+        if (error.response) {
+          console.log('Error response:', error.response.data);
+          errorMsg = error.response.data.error || errorMsg;
+        }
+        
         this.showNotification({
-          message: error.response?.data?.error || error.message || 'Failed to update customer status',
+          message: errorMsg,
           type: 'error'
         });
       } finally {

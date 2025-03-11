@@ -95,6 +95,10 @@ class SignIn(Resource):
         user = User.query.filter_by(email=email).first()
         if not user or not verify_password(password, user.password):
             return make_response(jsonify({"error": "Invalid email or password"}), 401)
+            
+        # Check if user is active before allowing login
+        if not user.active:
+            return make_response(jsonify({"error": "Your account has been deactivated. Please contact support."}), 403)
 
         login_user(user)
 
@@ -121,12 +125,18 @@ class SignIn(Resource):
                     "experience": professional.experience,
                     "description": professional.description,
                     "approved": professional.approved,
-                    "blocked": professional.blocked
+                    "blocked": professional.blocked,
+                    "active": user.active  # Include the user active status
                 })
+                
+                # If professional is blocked or user is inactive, mark them as blocked in the response
+                if professional.blocked or not user.active:
+                    user_data["blocked"] = True
         elif role == "admin":
             admin = Admin.query.filter_by(user_id=user.id).first()
             if admin:
                 user_data["name"] = admin.name
+                
         return make_response(jsonify({
             "message": "Signed in successfully!",
             "user": user_data
@@ -174,7 +184,8 @@ class CustomerDashboard(Resource):
             "professional_name": request.professional.name if request.professional else "Not assigned",
             "remarks": request.remarks,
             "status": request.service_status.name,
-            "date_of_request": request.date_of_request
+            "date_of_request": request.date_of_request,
+            "price": request.price  # Include the actual price from the service request
         } for request in service_requests]
 
         return make_response(jsonify({
@@ -195,6 +206,8 @@ class CustomerServices(Resource):
         professional_id = data.get('professional_id')
         remarks = data.get('remarks', '')
         preferred_date_str = data.get('preferred_date')
+        # Get price from request data, fall back to service price if not provided
+        custom_price = data.get('price')
         
         if not service_id:
             return make_response(jsonify({"error": "Service ID is required"}), 400)
@@ -230,7 +243,12 @@ class CustomerServices(Resource):
             if not professional.approved or professional.blocked:
                 return make_response(jsonify({"error": "Selected professional is not available"}), 400)
 
-        # Create service request with price from the serviceus
+        # Create service request with price from request data or fallback to service price
+        price_to_use = custom_price if custom_price is not None else service.price
+        
+        # Log the price being used for debugging
+        print(f"Creating service request with price: {price_to_use} (custom: {custom_price is not None}, base: {service.price})")
+        
         new_service_request = ServiceRequest(
             service_id=service.id,
             customer_id=customer.id,
@@ -238,7 +256,7 @@ class CustomerServices(Resource):
             remarks=remarks,
             service_status=ServiceStatusEnum.REQUESTED,  # Always starts as REQUESTED
             preferred_date=preferred_date,
-            price=service.price  # Use the base price from service
+            price=price_to_use  # Use custom price from frontend if provided
         )
 
         db.session.add(new_service_request)
@@ -452,14 +470,32 @@ class adminService(Resource):
     @auth_required('token')
     @roles_accepted('admin')
     def delete(self, service_id):
-        service = Service.query.get(service_id)
-        if not service:
-            return make_response(jsonify({"error": "Service not found"}), 404)
-
-        db.session.delete(service)
-        db.session.commit()
-
-        return make_response(jsonify({"message": "Service deleted successfully"}), 200)
+        try:
+            service = Service.query.get(service_id)
+            if not service:
+                return make_response(jsonify({"error": "Service not found"}), 404)
+            
+            # Find related service requests
+            related_requests = ServiceRequest.query.filter_by(service_id=service_id).all()
+            
+            # Option 1: Delete all related service requests first
+            for req in related_requests:
+                db.session.delete(req)
+            
+            # Then delete the service
+            db.session.delete(service)
+            db.session.commit()
+            
+            return make_response(jsonify({
+                "message": "Service deleted successfully", 
+                "related_requests_deleted": len(related_requests)
+            }), 200)
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error deleting service: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return make_response(jsonify({"error": str(e)}), 500)
 
     @auth_required('token')
     @roles_accepted('admin')
@@ -506,14 +542,45 @@ class adminCustomers(Resource):
     @auth_required('token')
     @roles_accepted('admin')
     def put(self, customer_id):
-        customer = Customer.query.get(customer_id)
-        if not customer:
-            return make_response(jsonify({"error": "Customer not found"}), 404)
+        try:
+            data = request.get_json()
+            print(f"Received PUT request for customer_id: {customer_id} with data: {data}")
+            
+            # First find the customer to get the user_id
+            customer = Customer.query.get(customer_id)
+            if not customer:
+                print(f"Customer not found with id: {customer_id}")
+                return make_response(jsonify({"error": f"Customer not found with id: {customer_id}"}), 404)
+            
+            # Now get the actual user record
+            user = User.query.get(customer.user_id)
+            if not user:
+                print(f"User not found with id: {customer.user_id}")
+                return make_response(jsonify({"error": f"User record not found with id: {customer.user_id}"}), 404)
 
-        customer.user.active = not customer.user.active
-        db.session.commit()
+            # If 'active' is in the request body, use that value; otherwise toggle
+            if 'active' in data:
+                user.active = bool(data['active'])
+            else:
+                user.active = not user.active
+                
+            db.session.commit()
 
-        return make_response(jsonify({"message": f"Customer activity switched to {customer.user.active}"}), 200)
+            status_text = "activated" if user.active else "deactivated"
+            return make_response(jsonify({
+                "message": f"User account {status_text} successfully",
+                "active": user.active,
+                "user_id": user.id,
+                "customer_id": customer.id,
+                "name": customer.name,
+                "email": user.email
+            }), 200)
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error updating customer status: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return make_response(jsonify({"error": str(e)}), 500)
 
 class adminProfessional(Resource):
     @auth_required('token')
@@ -545,9 +612,7 @@ class adminProfessional(Resource):
             professional.approved = data['approved']
         if 'blocked' in data:
             professional.blocked = data['blocked']
-
         db.session.commit()
-
         return make_response(jsonify({"message": f"Professional status updated successfully"}), 200)
 
 # Add a new endpoint for finding professionals by service type
@@ -564,7 +629,7 @@ class ProfessionalsByServiceType(Resource):
         # Filter for approved and non-blocked professionals for customers
         if current_user.roles[0].name == "customer":
             professionals = professionals.filter_by(approved=True, blocked=False)
-            
+
         professionals_list = [{
             "id": professional.id,
             "name": professional.name,
@@ -572,7 +637,7 @@ class ProfessionalsByServiceType(Resource):
             "experience": professional.experience,
             "description": professional.description
         } for professional in professionals.all()]
-
+        
         return jsonify({
             "service": {
                 "id": service.id,
@@ -631,7 +696,7 @@ class ProfessionalServiceRequests(Resource):
         service_request = ServiceRequest.query.get(request_id)
         if not service_request:
             return make_response(jsonify({"error": "Service request not found"}), 404)
-            
+
         # Check if the service request is assigned to this professional
         if service_request.professional_id != professional.id:
             return make_response(jsonify({"error": "This service request is not assigned to you"}), 403)
@@ -648,7 +713,6 @@ class ProfessionalServiceRequests(Resource):
                         "error": "Can only ACCEPT a request that is currently REQUESTED"
                     }), 400)
                 service_request.service_status = ServiceStatusEnum.ACCEPTED
-            
             # Professionals can CLOSE a request that is COMPLETED
             elif requested_status == 'CLOSED':
                 if current_status != 'COMPLETED':
@@ -664,14 +728,107 @@ class ProfessionalServiceRequests(Resource):
                         "error": "Can only cancel a request that is REQUESTED or ACCEPTED"
                     }), 400)
                 service_request.service_status = ServiceStatusEnum.CANCELLED
-            
             else:
                 return make_response(jsonify({
                     "error": f"Invalid status transition requested: '{requested_status}'. Professionals can only ACCEPT, CLOSE or CANCEL requests."
                 }), 400)
 
+        # Update other fields
+        if 'remarks' in data:
+            service_request.remarks = data['remarks']
+
         db.session.commit()
-        
+
         return make_response(jsonify({"message": "Service request updated successfully"}), 200)
+
+# Add a new endpoint for the professional profile
+class ProfessionalProfile(Resource):
+    @auth_required('token')
+    @roles_accepted('professional')
+    def get(self):
+        professional = ServiceProfessional.query.filter_by(user_id=current_user.id).first()
+        if not professional:
+            return make_response(jsonify({"error": "Professional profile not found"}), 404)
+            
+        return jsonify({
+            "id": professional.id,
+            "name": professional.name,
+            "email": current_user.email,
+            "service_type": professional.service_type.name,
+            "experience": professional.experience,
+            "description": professional.description,
+            "approved": professional.approved,
+            "blocked": professional.blocked,
+            "active": current_user.active
+        })
+
+class ServiceRequests(Resource):
+    @auth_required('token')
+    @roles_accepted('admin')
+    def get(self, service_id):
+        service = Service.query.get(service_id)
+        if not service:
+            return make_response(jsonify({"error": "Service not found"}), 404)
+        
+        # Get all service requests for this service
+        service_requests = ServiceRequest.query.filter_by(service_id=service_id).all()
+        
+        requests_list = []
+        for req in service_requests:
+            customer = req.customer
+            professional = req.professional
+            
+            requests_list.append({
+                "id": req.id,
+                "customer_id": req.customer_id,
+                "customer_name": customer.name if customer else "Unknown",
+                "professional_id": req.professional_id,
+                "professional_name": professional.name if professional else None,
+                "status": req.service_status.name,
+                "price": req.price,
+                "remarks": req.remarks,
+                "date_of_request": req.date_of_request,
+                "preferred_date": req.preferred_date
+            })
+        
+        return jsonify(requests_list)
+
+class AllServiceRequests(Resource):
+    @auth_required('token')
+    @roles_accepted('admin')
+    def get(self):
+        try:
+            # Fetch all service requests
+            service_requests = ServiceRequest.query.all()
+            
+            requests_list = []
+            for req in service_requests:
+                customer = req.customer
+                professional = req.professional
+                service = req.service
+                
+                requests_list.append({
+                    "id": req.id,
+                    "service_id": req.service_id,
+                    "service_name": service.name if service else "Unknown",
+                    "customer_id": req.customer_id,
+                    "customer_name": customer.name if customer else "Unknown",
+                    "customer_email": customer.user.email if customer and customer.user else None,
+                    "professional_id": req.professional_id,
+                    "professional_name": professional.name if professional else None,
+                    "professional_email": professional.user.email if professional and professional.user else None,
+                    "status": req.service_status.name,
+                    "price": req.price,
+                    "remarks": req.remarks,
+                    "date_of_request": req.date_of_request,
+                    "preferred_date": req.preferred_date
+                })
+            
+            return jsonify(requests_list)
+        except Exception as e:
+            print(f"Error fetching service requests: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return make_response(jsonify({"error": str(e)}), 500)
 
 # Add the new API endpoints

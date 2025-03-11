@@ -1,18 +1,39 @@
 <template>
   <div class="admin-layout">
-    <header class="admin-header">
-      <h1>UrbanAid</h1>
-      <div class="admin-nav">
-        <router-link to="/admin/home/dashboard">Dashboard</router-link> |
-        <router-link to="/admin/home/service">Services</router-link> |
-        <router-link to="/admin/home/customers">Customers</router-link> |
-        <router-link to="/admin/home/professionals">Professionals</router-link> |
-        <button @click="logout" class="logout-btn">Logout</button>
+    <!-- Top Navigation Bar -->
+    <div class="admin-navbar">
+      <div class="navbar-brand">
+        <h2>Admin Panel</h2>
       </div>
-    </header>
-    <main class="admin-content">
-      <router-view/>
-    </main>
+      <div class="navbar-menu">
+        <router-link to="/admin/home/dashboard" class="menu-item">
+          <i class="fas fa-tachometer-alt"></i> Dashboard
+        </router-link>
+        <router-link to="/admin/home/service" class="menu-item">
+          <i class="fas fa-tools"></i> Services
+        </router-link>
+        <router-link to="/admin/home/requests" class="menu-item">
+          <i class="fas fa-clipboard-list"></i> Service Requests
+        </router-link>
+        <router-link to="/admin/home/customers" class="menu-item">
+          <i class="fas fa-users"></i> Customers
+        </router-link>
+        <router-link to="/admin/home/professionals" class="menu-item">
+          <i class="fas fa-user-tie"></i> Professionals
+        </router-link>
+      </div>
+      <div class="navbar-actions">
+        <button @click="logout" class="btn-logout">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </div>
+    
+    <div class="admin-content">
+      <div class="content-main">
+        <router-view />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -47,63 +68,150 @@ export default {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
-.admin-header {
+/* Top Navigation Bar */
+.admin-navbar {
   background-color: #2F2235;
-  padding: 20px;
   color: #BFC3BA;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  height: 60px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   border-bottom: 3px solid #60495A;
+  z-index: 100;
+  position: sticky;
+  top: 0;
 }
 
-.admin-header h1 {
-  margin-bottom: 15px;
+.navbar-brand h2 {
+  margin: 0;
+  font-size: 1.5rem;
   color: #BFC3BA;
 }
 
-.admin-nav {
-  padding: 10px 0;
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
-.admin-nav a {
-  margin-right: 15px;
-  font-weight: 600;
+.menu-item {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
   color: #BFC3BA;
   text-decoration: none;
-  padding: 8px 10px;
+  font-weight: 500;
   transition: all 0.3s;
-  border-bottom: 2px solid transparent;
+  position: relative;
 }
 
-.admin-nav a:hover {
-  color: #60495A;
-  border-bottom: 2px solid #60495A;
+.menu-item i {
+  margin-right: 8px;
 }
 
-.admin-nav a.router-link-active {
-  color: #60495A;
-  border-bottom: 2px solid #60495A;
+.menu-item:hover {
+  background-color: rgba(96, 73, 90, 0.3);
+  color: white;
 }
 
-.logout-btn {
+.menu-item.router-link-active {
+  color: white;
+}
+
+.menu-item.router-link-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #60495A;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #BFC3BA;
+}
+
+.btn-logout {
   background-color: #60495A;
   color: white;
   border: none;
-  padding: 8px 15px;
+  padding: 6px 12px;
   border-radius: 5px;
   cursor: pointer;
   font-weight: 600;
   transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.logout-btn:hover {
-  background-color: #3F3244;
+.btn-logout:hover {
+  background-color: #7d5e74;
 }
 
+/* Content area */
 .admin-content {
-  padding: 20px;
   flex: 1;
   background-color: #3F3244;
+  min-height: calc(100vh - 60px); /* Account for navbar height */
+}
+
+.content-main {
+  padding: 20px;
+  padding-top: 15px;
+  overflow-y: auto;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .admin-navbar {
+    flex-direction: column;
+    height: auto;
+    padding: 10px;
+  }
+  
+  .navbar-brand {
+    margin-bottom: 10px;
+  }
+  
+  .navbar-menu {
+    width: 100%;
+    overflow-x: auto;
+    justify-content: space-between;
+    padding-bottom: 5px;
+  }
+  
+  .menu-item {
+    height: 40px;
+    padding: 0 10px;
+    font-size: 0.9rem;
+  }
+  
+  .menu-item i {
+    margin-right: 5px;
+  }
+  
+  .navbar-actions {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }
 </style>

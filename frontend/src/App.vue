@@ -81,18 +81,36 @@ export default {
 </script>
 
 <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', Arial, sans-serif;
+  background-color: #3F3244;
+  color: #BFC3BA;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+#app {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 :root {
   --primary-color: #60495A;
   --secondary-color: #3F3244;
   --dark-color: #2F2235;
   --light-color: #BFC3BA;
   --muted-color: #A9ACA9;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
 
 body {

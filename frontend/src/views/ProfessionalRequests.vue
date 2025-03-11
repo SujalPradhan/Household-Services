@@ -1,6 +1,8 @@
 <template>
   <div class="professional-requests">
-    <h1>My Service Requests</h1>
+    <div class="page-header">
+      <h1>My Service Requests</h1>
+    </div>
     
     <div class="request-tabs">
       <button 
@@ -44,7 +46,7 @@
     </div>
     
     <div v-else-if="filteredRequests.length === 0" class="empty-state">
-      <i class="fas fa-search"></i>
+      <i class="fas fa-clipboard-list"></i>
       <p>No {{ activeTab }} service requests found.</p>
     </div>
     
@@ -62,31 +64,28 @@
         </div>
         
         <div class="request-details">
-          <div class="detail-row">
+          <div class="details-grid">
             <div class="detail-item">
-              <div class="label">Customer:</div>
+              <div class="label"><i class="fas fa-user"></i> Customer</div>
               <div class="value">{{ request.customer_name }}</div>
             </div>
             <div class="detail-item">
-              <div class="label">Price:</div>
+              <div class="label"><i class="fas fa-coins"></i> Price</div>
               <div class="value price">₹{{ request.price?.toFixed(2) }}</div>
             </div>
-          </div>
-          
-          <div class="detail-row">
             <div class="detail-item">
-              <div class="label">Requested On:</div>
+              <div class="label"><i class="fas fa-calendar-alt"></i> Requested On</div>
               <div class="value">{{ formatDate(request.date_of_request) }}</div>
             </div>
             <div v-if="request.preferred_date" class="detail-item">
-              <div class="label">Preferred Date:</div>
+              <div class="label"><i class="fas fa-calendar-check"></i> Preferred Date</div>
               <div class="value">{{ formatDate(request.preferred_date) }}</div>
             </div>
           </div>
           
-          <div v-if="request.remarks" class="detail-item full-width">
-            <div class="label">Remarks:</div>
-            <div class="value">{{ request.remarks }}</div>
+          <div v-if="request.remarks" class="detail-item remarks-container">
+            <div class="label"><i class="fas fa-comment-alt"></i> Remarks</div>
+            <div class="value remarks">{{ request.remarks }}</div>
           </div>
         </div>
         
@@ -113,7 +112,7 @@
               @click="closeRequest(request)" 
               class="btn btn-success"
             >
-              Close Request
+              <i class="fas fa-check-circle"></i> Close Request
             </button>
           </div>
           
@@ -437,9 +436,26 @@ export default {
   color: var(--light-color, #BFC3BA);
 }
 
-h1 {
-  margin-bottom: 20px;
-  color: var(--light-color, #BFC3BA);
+.page-header {
+  margin-bottom: 25px;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: var(--light-color);
+  font-size: 2rem;
+  font-weight: 700;
+  position: relative;
+}
+
+.page-header h1:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 60px;
+  height: 3px;
+  background: var(--primary-color, #60495A);
 }
 
 /* Request Tabs */
@@ -448,13 +464,16 @@ h1 {
   gap: 10px;
   margin-bottom: 25px;
   flex-wrap: wrap;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: 8px;
 }
 
 .tab-btn {
-  padding: 10px 15px;
-  background-color: var(--dark-color, #2F2235);
+  padding: 12px 18px;
+  background-color: transparent;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   color: var(--light-color, #BFC3BA);
   cursor: pointer;
   font-weight: 600;
@@ -462,11 +481,17 @@ h1 {
   display: flex;
   align-items: center;
   gap: 8px;
+  position: relative;
 }
 
 .tab-btn.active {
   background-color: var(--primary-color, #60495A);
   color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tab-btn:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .tab-icon {
@@ -488,21 +513,28 @@ h1 {
 
 /* Request List */
 .requests-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 20px;
 }
 
 .request-card {
   background-color: var(--dark-color, #2F2235);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.request-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .request-header {
-  background-color: #221728;
-  padding: 15px;
+  background-color: rgba(0,0,0,0.2);
+  padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -511,14 +543,17 @@ h1 {
 
 .request-header h2 {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
+  color: var(--light-color);
 }
 
 .request-badge {
-  padding: 5px 10px;
-  border-radius: 15px;
+  padding: 6px 14px;
+  border-radius: 20px;
   font-size: 0.8rem;
   font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .request-badge.requested {
@@ -547,43 +582,63 @@ h1 {
 }
 
 .request-details {
-  padding: 15px;
+  padding: 20px;
 }
 
-.detail-row {
-  display: flex;
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .detail-item {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-.detail-item.full-width {
-  flex-basis: 100%;
+.remarks-container {
+  margin-top: 10px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .label {
   font-size: 0.9rem;
   color: var(--muted-color, #8a8a8a);
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.label i {
+  color: var(--primary-color);
 }
 
 .value {
   font-weight: 500;
+  color: var(--light-color);
 }
 
 .value.price {
-  color: var(--primary-color, #60495A);
+  color: #2ecc71;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+}
+
+.value.remarks {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  line-height: 1.5;
 }
 
 .request-actions {
-  padding: 15px;
+  padding: 20px;
   background-color: rgba(0, 0, 0, 0.1);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Fix for overlapping buttons */
@@ -596,8 +651,8 @@ h1 {
 
 /* Buttons - Updated Styles */
 .btn {
-  padding: 10px 18px;
-  border-radius: 6px;
+  padding: 12px 20px;
+  border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -606,16 +661,16 @@ h1 {
   justify-content: center;
   gap: 8px;
   border: none;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   letter-spacing: 0.3px;
-  min-width: 120px;
-  max-width: 200px;  /* Add max-width to prevent overflow */
-  text-align: center; /* Ensure text is centered */
+  min-width: 140px;  
+  max-width: 200px;
+  text-align: center;
 }
 
 .btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .btn:active:not(:disabled) {
@@ -665,45 +720,29 @@ h1 {
   background: linear-gradient(135deg, #8ca0ac, #647c8a);
 }
 
-/* Responsive Design - Update button style for mobile */
-@media (max-width: 768px) {
-  .detail-row {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .action-buttons {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-  }
-  
-  .btn {
-    width: 100%;
-    max-width: none; /* Remove max-width constraint on mobile */
-    justify-content: center;
-    padding: 12px;
-    font-size: 0.95rem;
-  }
-}
-
 /* Empty State */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 50px 20px;
+  padding: 60px 20px;
   color: var(--muted-color, #8a8a8a);
-  background-color: var(--dark-color, #2F2235);
-  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
   text-align: center;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
 }
 
 .empty-state i {
-  font-size: 3rem;
-  margin-bottom: 15px;
+  font-size: 4rem;
+  margin-bottom: 20px;
   opacity: 0.7;
+  color: var(--primary-color);
+}
+
+.empty-state p {
+  font-size: 1.1rem;
 }
 
 /* Loading */
@@ -712,17 +751,17 @@ h1 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 50px 20px;
+  padding: 60px 20px;
 }
 
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(96, 73, 90, 0.3);
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(96, 73, 90, 0.2);
   border-top: 4px solid var(--primary-color, #60495A);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 @keyframes spin {
@@ -749,20 +788,34 @@ h1 {
   background-color: var(--secondary-color, #3F3244);
   width: 90%;
   max-width: 500px;
-  border-radius: 10px;
-  padding: 25px;
+  border-radius: 12px;
+  padding: 30px;
   position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--light-color);
 }
 
 .close-btn {
   position: absolute;
   top: 15px;
-  right: 15px;
+  right: 20px;
   background: none;
   border: none;
   font-size: 24px;
   color: var(--light-color, #BFC3BA);
   cursor: pointer;
+  transition: color 0.3s;
+}
+
+.close-btn:hover {
+  color: var(--primary-color);
 }
 
 .form-group {
@@ -771,41 +824,48 @@ h1 {
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-weight: 500;
+  color: var(--light-color);
 }
 
 .form-control {
   width: 100%;
-  padding: 10px;
-  border-radius: 5px;
+  padding: 12px;
+  border-radius: 8px;
   background-color: var(--dark-color, #2F2235);
   color: var(--light-color, #BFC3BA);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: border-color 0.3s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
 }
 
 .modal-actions {
-  margin-top: 25px;
+  margin-top: 30px;
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 15px;
 }
 
 /* Toast Notification */
 .toast {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 30px;
+  right: 30px;
   min-width: 300px;
   max-width: 400px;
   background-color: white;
   color: #333;
-  border-radius: 5px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.25);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
+  padding: 18px;
   animation: slideIn 0.3s ease-in-out;
   z-index: 1001;
 }
@@ -816,11 +876,11 @@ h1 {
 }
 
 .toast.success {
-  border-left: 4px solid #28a745;
+  border-left: 5px solid #28a745;
 }
 
 .toast.error {
-  border-left: 4px solid #dc3545;
+  border-left: 5px solid #dc3545;
 }
 
 .toast-content {
@@ -829,8 +889,8 @@ h1 {
 }
 
 .toast-content i {
-  font-size: 1.2rem;
-  margin-right: 10px;
+  font-size: 1.3rem;
+  margin-right: 12px;
 }
 
 .toast.success i {
@@ -843,5 +903,46 @@ h1 {
 
 .toast-close {
   cursor: pointer;
+  padding: 5px;
+  transition: opacity 0.3s;
+}
+
+.toast-close:hover {
+  opacity: 0.7;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .btn {
+    width: 100%;
+    max-width: none;
+    justify-content: center;
+    padding: 12px;
+  }
+  
+  .request-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .request-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .request-badge {
+    align-self: flex-start;
+  }
 }
 </style>

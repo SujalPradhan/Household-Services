@@ -13,13 +13,30 @@ import ProfessionalHome from '../views/ProfessionalHome.vue';
 import ServiceRequests from '../views/ServiceRequests.vue';
 import ProfessionalProfile from '../views/ProfessionalProfile.vue';
 import TestPage from '../views/TestPage.vue';
+import BlockedUserView from '../views/BlockedUserView.vue';
+import AdminServiceRequests from '../views/AdminServiceRequests.vue';
+import CustomerDashboard from '../views/CustomerDashboard.vue';
+import CustomerServices from '../views/CustomerServices.vue';
+import CustomerProfessionals from '../views/CustomerProfessionals.vue';
+import CustomerRequests from '../views/CustomerRequests.vue';
 
 const routes = [
   { path: '/', name: 'HomeView', component: HomeView },
   { path: '/login', name: 'LoginView', component: LoginView },
   { path: '/register', name: 'RegisterView', component: RegisterView },
   { path: '/register-professional', name: 'RegisterProfessional', component: RegisterProfessional },
-  { path: '/customer', name: 'CustomerHome', component: CustomerHome },
+  { 
+    path: '/customer',
+    name: 'CustomerHome', 
+    component: CustomerHome,
+    children: [
+      { path: '', redirect: { name: 'CustomerDashboard' } },
+      { path: 'dashboard', name: 'CustomerDashboard', component: CustomerDashboard },
+      { path: 'services', name: 'CustomerServices', component: CustomerServices },
+      { path: 'professionals', name: 'CustomerProfessionals', component: CustomerProfessionals },
+      { path: 'requests', name: 'CustomerRequests', component: CustomerRequests }
+    ]
+  },
   { 
     path: '/admin/home', 
     name: 'AdminHome', 
@@ -30,6 +47,7 @@ const routes = [
       { path: 'service', name: 'AdminService', component: AdminService },
       { path: 'customers', name: 'AdminCustomers', component: AdminCustomers },
       { path: 'professionals', name: 'AdminProfessional', component: AdminProfessional },
+      { path: 'requests', name: 'AdminServiceRequests', component: AdminServiceRequests },
     ]
   },
   {
@@ -42,6 +60,7 @@ const routes = [
       { path: 'profile', name: 'ProfessionalProfile', component: ProfessionalProfile },
     ]
   },
+  { path: '/blocked', name: 'blocked', component: BlockedUserView },
   { path: '/test', name: 'TestPage', component: TestPage }
 ];
 

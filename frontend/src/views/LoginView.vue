@@ -52,6 +52,11 @@
           <a href="#" class="forgot-password">Forgot password?</a>
         </div>
 
+        <div v-if="errorMessage" class="error-message-box">
+          <i class="fas fa-exclamation-circle"></i>
+          {{ errorMessage }}
+        </div>
+
         <button type="submit" class="btn btn-primary btn-block">
           <span v-if="loading">
             <i class="fas fa-spinner fa-spin"></i> Logging in...
@@ -91,7 +96,8 @@ export default {
       password: '',
       rememberMe: false,
       showPassword: false,
-      loading: false
+      loading: false,
+      errorMessage: ''
     };
   },
   created() {
@@ -104,6 +110,7 @@ export default {
   methods: {
     async login() {
       this.loading = true;
+      this.errorMessage = '';
       try {
         const response = await axios.post('http://127.0.0.1:5000/signin', {
           email: this.email,
@@ -121,13 +128,28 @@ export default {
         // Store token properly
         sessionStorage.setItem("Authorization", user.authentication_token);
         
+        // Store the user data for checking blocked status later
+        sessionStorage.setItem("userData", JSON.stringify(user));
+        
         console.log("User role:", user.role);
+        
+        // Check if user is active before redirecting
+        if (user.active === false) {
+          this.$router.push('/blocked');
+          return;
+        }
+        
+        // Check if professional is blocked before redirecting
+        if (user.role === 'professional' && user.blocked === true) {
+          this.$router.push('/blocked');
+          return;
+        }
         
         // Navigate based on role
         this.redirectBasedOnRole(user);
       } catch (error) {
         console.error("Login Error:", error);
-        alert(error.response?.data?.error || error.message || "Login failed");
+        this.errorMessage = error.response?.data?.error || error.message || "Login failed";
       } finally {
         this.loading = false;
       }
@@ -387,6 +409,23 @@ input.invalid {
   color: #e74c3c;
   font-size: 14px;
   margin-top: 5px;
+}
+
+.error-message-box {
+  background-color: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #dc3545;
+  padding: 12px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.error-message-box i {
+  font-size: 18px;
+  color: #dc3545;
 }
 
 @media (max-width: 576px) {

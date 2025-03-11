@@ -283,7 +283,10 @@ export default {
         message: '',
         type: 'success',
         timeout: null
-      }
+      },
+      expandedServiceId: null,
+      serviceRequests: [],
+      loadingRequests: false,
     };
   },
   computed: {
@@ -602,7 +605,61 @@ export default {
         default:
           return 'fas fa-info-circle';
       }
-    }
+    },
+    async viewRequests(service) {
+      if (this.expandedServiceId === service.id) {
+        // If already expanded, collapse it
+        this.expandedServiceId = null;
+        return;
+      }
+      
+      this.expandedServiceId = service.id;
+      this.loadingRequests = true;
+      this.serviceRequests = [];
+      
+      try {
+        const token = sessionStorage.getItem('Authorization');
+        if (!token) {
+          throw new Error('Not authenticated');
+        }
+        
+        const response = await axios.get(`http://127.0.0.1:5000/admin/service/${service.id}/requests`, {
+          headers: { 'Authorization': token }
+        });
+        
+        this.serviceRequests = response.data;
+      } catch (error) {
+        console.error('Error fetching service requests:', error);
+        this.showNotification({
+          message: 'Failed to load service requests',
+          type: 'error'
+        });
+      } finally {
+        this.loadingRequests = false;
+      }
+    },
+    
+    formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    },
+    
+    getStatusClass(status) {
+      const statusLower = String(status).toLowerCase();
+      if (statusLower === 'requested') return 'status-requested';
+      if (statusLower === 'accepted') return 'status-accepted';
+      if (statusLower === 'completed') return 'status-completed';
+      if (statusLower === 'cancelled') return 'status-cancelled';
+      if (statusLower === 'closed') return 'status-closed';
+      return '';
+    },
   }
 };
 </script>
@@ -1019,5 +1076,117 @@ select.form-control:focus {
   .form-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* Service Requests Expansion Panel */
+.requests-row {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.service-requests-panel {
+  padding: 20px;
+  background-color: #2F2235;
+  border-radius: 5px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.service-requests-panel h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--light-color);
+  border-bottom: 1px solid var(--primary-color);
+  padding-bottom: 10px;
+}
+
+.requests-table-container {
+  overflow-x: auto;
+  margin-bottom: 15px;
+}
+
+.requests-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.requests-table th, .requests-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.requests-table th {
+  background-color: rgba(0, 0, 0, 0.2);
+  font-weight: 600;
+  color: var(--light-color);
+}
+
+.panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-requested {
+  background-color: #3498db;
+  color: white;
+}
+
+.status-accepted {
+  background-color: #f39c12;
+  color: white;
+}
+
+.status-completed {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.status-cancelled {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.status-closed {
+  background-color: #95a5a6;
+  color: white;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+
+.spinner {
+  border: 3px solid rgba(96, 73, 90, 0.3);
+  border-radius: 50%;
+  border-top: 3px solid var(--primary-color);
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+.no-requests {
+  padding: 20px;
+  text-align: center;
+  color: var(--muted-color);
+}
+
+.expanded {
+  background-color: rgba(96, 73, 90, 0.2);
+  border-bottom: none !important;
 }
 </style>

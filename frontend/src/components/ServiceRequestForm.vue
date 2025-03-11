@@ -20,6 +20,11 @@
             >
             <span class="slider-value">+₹{{ priceAdjustment }}</span>
           </div>
+          <div class="price-breakdown">
+            <span>Base Price: ₹{{ basePrice.toFixed(2) }}</span>
+            <span>Adjustment: +₹{{ priceAdjustment }}</span>
+            <span class="total-price">Total Price: ₹{{ formData.price.toFixed(2) }}</span>
+          </div>
         </div>
         <input type="hidden" v-model="formData.price">
       </div>
@@ -137,7 +142,7 @@ export default {
   },
   computed: {
     displayPrice() {
-      const totalPrice = parseFloat(this.basePrice) + parseFloat(this.priceAdjustment);
+      const totalPrice = parseFloat(this.formData.price);
       return `₹${totalPrice.toFixed(2)}`;
     },
     selectedProfessional() {
@@ -151,15 +156,35 @@ export default {
       handler(newService) {
         if (newService && newService.id) {
           this.formData.service_id = newService.id;
-          this.basePrice = newService.price;
-          this.formData.price = newService.price;
+          
+          // Use confirmedPrice or price property from parent component
+          const servicePrice = newService.confirmedPrice || newService.price;
+          console.log('Received service price:', servicePrice);
+          this.basePrice = parseFloat(servicePrice);
+          this.formData.price = parseFloat(servicePrice);
+          
+          // Reset price adjustment to avoid double counting
+          this.priceAdjustment = 0;
+          
           this.fetchProfessionals(newService.id);
         }
       }
     },
     priceAdjustment: {
       handler(newValue) {
-        this.formData.price = parseFloat(this.basePrice) + parseFloat(newValue);
+        // Ensure values are treated as numbers
+        const adjustmentValue = parseFloat(newValue) || 0;
+        const newTotalPrice = this.basePrice + adjustmentValue;
+        
+        // Update the form data with the new total price
+        this.formData.price = parseFloat(newTotalPrice.toFixed(2));
+        console.log('Updated total price:', this.formData.price, 'Base:', this.basePrice, 'Adjustment:', adjustmentValue);
+      }
+    },
+    // Add explicit watch for price changes to ensure it's updated
+    'formData.price': {
+      handler(newPrice) {
+        console.log('Price in formData updated to:', newPrice);
       }
     }
   },
@@ -202,25 +227,43 @@ export default {
           throw new Error('Not authenticated');
         }
         
+        // Ensure price calculation is correct (base + adjustment)
+        const calculatedPrice = this.basePrice + parseFloat(this.priceAdjustment || 0);
+        const finalPrice = parseFloat(calculatedPrice.toFixed(2));
+        
+        // Double-check the price is correct before submission
+        if (finalPrice !== this.formData.price) {
+          console.warn('Price mismatch detected, correcting...');
+          this.formData.price = finalPrice;
+        }
+        
         // Format the preferred date to ISO string
         const formattedData = {
           ...this.formData,
+          price: finalPrice, // Explicitly set price to the calculated value
           preferred_date: new Date(this.formData.preferred_date).toISOString()
         };
         
+        console.log('Submitting service request with final price:', finalPrice);
+        console.log('Price breakdown - Base:', this.basePrice, 'Adjustment:', this.priceAdjustment);
+        console.log('Full request data:', formattedData);
+        
+        // Convert to JSON explicitly to ensure correct data format
         const response = await axios.post(
           'http://127.0.0.1:5000/customer/services',
           formattedData,
           {
             headers: {
-              'Authorization': token
+              'Authorization': token,
+              'Content-Type': 'application/json'
             }
           }
         );
         
         this.$emit('success', {
           message: 'Service request created successfully!',
-          requestId: response.data.request_id
+          requestId: response.data.request_id,
+          price: finalPrice // Pass price back to parent component
         });
         
         this.resetForm();
@@ -234,12 +277,15 @@ export default {
     },
     
     resetForm() {
+      // Calculate the current total price correctly
+      const currentTotal = this.basePrice + parseFloat(this.priceAdjustment || 0);
+      
       this.formData = {
         service_id: this.service.id,
         professional_id: '',
         preferred_date: this.getTomorrowFormatted(),
         remarks: '',
-        price: this.basePrice
+        price: parseFloat(currentTotal.toFixed(2)) // Set price to the total
       };
       this.priceAdjustment = 0;
     },
@@ -453,5 +499,23 @@ label {
   padding: 3px 10px;
   border-radius: 15px;
   text-align: center;
+}
+
+.price-breakdown {
+  margin-top: 15px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 5px;
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.9rem;
+}
+
+.total-price {
+  margin-top: 5px;
+  font-weight: bold;
+  color: var(--primary-color, #60495A);
+  font-size: 1.1rem;
 }
 </style>

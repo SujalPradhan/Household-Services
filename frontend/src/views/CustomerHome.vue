@@ -13,253 +13,15 @@
       </div>
     </div>
 
-    <div class="search-section">
-      <h2>Find Services</h2>
-      <div class="search-container">
-        <input 
-          v-model="searchQuery" 
-          placeholder="Search services by name" 
-          class="search-input"
-        />
-        <button @click="searchServices" class="search-button">
-          <i class="fas fa-search"></i> Search
-        </button>
-      </div>
+    <!-- Navigation Tabs -->
+    <div class="navigation-tabs">
+      <router-link to="/customer/dashboard" class="nav-tab" exact>Dashboard</router-link>
+      <router-link to="/customer/services" class="nav-tab">Find Services</router-link>
+      <router-link to="/customer/professionals" class="nav-tab">Find Professionals</router-link>
+      <router-link to="/customer/requests" class="nav-tab">My Requests</router-link>
     </div>
 
-    <!-- Services Section -->
-    <div class="services-section">
-      <h2>Available Services</h2>
-      
-      <div v-if="loading" class="loading-container">
-        <div class="spinner"></div>
-        <p>Loading services...</p>
-      </div>
-      
-      <div v-else-if="filteredServices.length === 0" class="no-services">
-        <p>No services found matching your criteria.</p>
-      </div>
-      
-      <div v-else class="services-grid">
-        <div 
-          v-for="service in filteredServices" 
-          :key="service.id" 
-          class="service-card"
-        >
-          <div class="service-header">
-            <h3>{{ service.name }}</h3>
-            <span class="service-price">₹{{ service.price.toFixed(2) }}</span>
-          </div>
-          <div class="service-body">
-            <div class="service-meta">
-              <div class="meta-item">
-                <i class="fas fa-tools"></i> {{ service.service_type }}
-              </div>
-            </div>
-            <p class="service-description">{{ truncateText(service.description, 100) || 'No description provided.' }}</p>
-          </div>
-          <div class="service-footer">
-            <button class="btn btn-info" @click="viewServiceDetails(service)">
-              <i class="fas fa-info-circle"></i> Details
-            </button>
-            <button class="btn btn-primary" @click="requestServiceDirectly(service)">
-              <i class="fas fa-plus"></i> Request Service
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Service Requests History -->
-    <div class="history-section">
-      <h2>My Service Requests</h2>
-      
-      <div v-if="loadingRequests" class="loading-container">
-        <div class="spinner"></div>
-        <p>Loading service requests...</p>
-      </div>
-      
-      <div v-else-if="!serviceRequests || serviceRequests.length === 0" class="no-history">
-        <p>You have no service request history.</p>
-      </div>
-      
-      <div v-else class="history-list">
-        <div v-for="request in serviceRequests" :key="request.id" class="history-item">
-          <div class="history-header">
-            <h3>{{ request.service_name }}</h3>
-            <span class="status-badge" :class="getStatusClass(request.status)">
-              {{ request.status }}
-            </span>
-          </div>
-          <div class="history-body">
-            <p><strong>Professional:</strong> {{ request.professional_name || 'Not assigned' }}</p>
-            <p><strong>Requested on:</strong> {{ formatDate(request.date_of_request) }}</p>
-            <p><strong>Price:</strong> <span class="request-price">₹{{ formatPrice(request.price) }}</span></p>
-            <p v-if="request.remarks"><strong>Remarks:</strong> {{ request.remarks }}</p>
-          </div>
-          <!-- Add actions based on request status -->
-          <div class="request-actions" v-if="request.status.toLowerCase() === 'accepted'">
-            <button 
-              @click="markRequestAsCompleted(request)" 
-              class="btn btn-success">
-              <i class="fas fa-check-circle"></i> Mark as Completed
-            </button>
-          </div>
-          <div class="request-actions" v-if="request.status.toLowerCase() === 'requested'">
-            <button 
-              @click="cancelRequest(request)" 
-              class="btn btn-danger">
-              <i class="fas fa-times-circle"></i> Cancel Request
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Service Details Modal -->
-    <div v-if="selectedService" class="modal-overlay" @click.self="closeServiceModal">
-      <div class="modal-content">
-        <button class="close-btn" @click="closeServiceModal">×</button>
-        <div class="service-details">
-          <h2>{{ selectedService.name }}</h2>
-          <div class="detail-item">
-            <span class="detail-label">Price:</span>
-            <span class="detail-value price">₹{{ selectedService.price.toFixed(2) }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Service Type:</span>
-            <span class="detail-value">{{ selectedService.service_type }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Description:</span>
-            <p class="detail-value description">{{ selectedService.description || 'No description provided.' }}</p>
-          </div>
-          
-          <div class="professionals-section" v-if="professionals.length > 0">
-            <h3>Available Professionals</h3>
-            <p class="select-hint">Select a professional to request this service:</p>
-            <div class="professionals-list">
-              <div 
-                v-for="professional in professionals" 
-                :key="professional.id"
-                class="professional-card"
-                :class="{ 'selected': selectedProfessional && selectedProfessional.id === professional.id }"
-                @click="selectProfessional(professional)"
-              >
-                <h4>{{ professional.name }}</h4>
-                <div class="professional-meta">
-                  <p><strong>Experience:</strong> {{ professional.experience }} {{ professional.experience === 1 ? 'year' : 'years' }}</p>
-                  <p><strong>Specializes in:</strong> {{ professional.service_type }}</p>
-                </div>
-                <p v-if="professional.description" class="professional-description">
-                  {{ truncateText(professional.description, 100) }}
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div v-else-if="loadingProfessionals" class="loading-professionals">
-            <div class="spinner small"></div>
-            <p>Loading available professionals...</p>
-          </div>
-          
-          <div v-else class="no-professionals">
-            <p>No professionals available for this service type.</p>
-          </div>
-          
-          <div class="service-request-form" v-if="selectedProfessional">
-            <h3>Request Service</h3>
-            <div class="form-group">
-              <label for="remarks">Additional Notes:</label>
-              <textarea 
-                id="remarks" 
-                v-model="requestForm.remarks"
-                placeholder="Any special requirements or information..."
-                rows="3"
-                class="form-control"
-              ></textarea>
-            </div>
-          </div>
-          
-          <div class="modal-actions">
-            <button 
-              @click="closeServiceModal" 
-              class="btn btn-secondary"
-            >
-              Cancel
-            </button>
-            <!-- <button 
-              @click="requestService" 
-              class="btn btn-primary"
-              :disabled="!selectedProfessional || requestProcessing"
-            >
-              <span v-if="requestProcessing">
-                <i class="fas fa-spinner fa-spin"></i> Processing...
-              </span>
-              <span v-else>
-                Request Service
-              </span>
-            </button> -->
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Quick Service Request Modal -->
-    <div v-if="quickRequestService" class="modal-overlay" @click.self="closeQuickRequestModal">
-      <div class="modal-content">
-        <button class="close-btn" @click="closeQuickRequestModal">×</button>
-        <service-request-form
-          :service="quickRequestService"
-          @success="handleRequestSuccess"
-          @error="handleRequestError"
-          @cancel="closeQuickRequestModal"
-        />
-      </div>
-    </div>
-    
-    <!-- Status Update Modal -->
-    <div v-if="statusUpdateRequest" class="modal-overlay" @click.self="closeStatusUpdateModal">
-      <div class="modal-content">
-        <button class="close-btn" @click="closeStatusUpdateModal">×</button>
-        <h2>{{ statusUpdateAction.title }}</h2>
-        <p>{{ statusUpdateAction.message }}</p>
-        
-        <div class="form-group" v-if="statusUpdateAction.showRemarks">
-          <label for="statusUpdateRemarks">Additional Comments:</label>
-          <textarea
-            id="statusUpdateRemarks"
-            v-model="statusUpdateForm.remarks"
-            class="form-control"
-            placeholder="Add any feedback or comments about the service..."
-          ></textarea>
-        </div>
-        
-        <div class="modal-actions">
-          <button @click="closeStatusUpdateModal" class="btn btn-secondary">Cancel</button>
-          <button 
-            @click="submitStatusUpdate" 
-            class="btn"
-            :class="statusUpdateAction.btnClass"
-            :disabled="statusUpdateProcessing"
-          >
-            <i class="fas" :class="statusUpdateProcessing ? 'fa-spinner fa-spin' : statusUpdateAction.btnIcon"></i>
-            {{ statusUpdateAction.btnText }}
-          </button>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Notification Toast -->
-    <div v-if="notification.show" class="toast" :class="notification.type">
-      <div class="toast-content">
-        <i :class="getNotificationIcon()"></i>
-        <span>{{ notification.message }}</span>
-      </div>
-      <div class="toast-close" @click="closeNotification">
-        <i class="fas fa-times"></i>
-      </div>
-    </div>
+    <router-view />
   </div>
 </template>
 
@@ -328,6 +90,12 @@ export default {
             Authorization: token
           }
         });
+        
+        // Check if user is active
+        if (response.data.customer_details && response.data.customer_details.active === false) {
+          this.$router.push('/blocked');
+          return;
+        }
         
         // Get customer details
         this.customer = response.data.customer_details;
@@ -671,6 +439,12 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener('global-auth-change', this.handleAuthChange);
+  },
+  created() {
+    // Check if we're on the parent route and redirect to dashboard
+    if (this.$route.path === '/customer') {
+      this.$router.push('/customer/dashboard');
+    }
   }
 };
 </script>
@@ -679,6 +453,8 @@ export default {
 .customer-dashboard {
   color: var(--light-color);
   padding: 20px;
+  padding-top: 0;
+  margin: 0;
 }
 
 .dashboard-header {
@@ -1269,5 +1045,124 @@ h1, h2, h3 {
   border-radius: 4px;
   display: inline-block;
   border: 1px solid rgba(142, 103, 210, 0.3);
+}
+
+/* Navigation Tabs - Improved styling */
+.navigation-tabs {
+  display: flex;
+  margin-bottom: 25px;
+  background-color: var(--secondary-color);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  padding: 5px;
+  position: relative;
+}
+
+.nav-tab {
+  padding: 12px 20px;
+  color: var(--muted-color);
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+  text-align: center;
+  flex: 1;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.nav-tab::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 3px;
+  background: linear-gradient(to right, #60495A, #7e57c2);
+  transition: width 0.3s ease;
+}
+
+.nav-tab:hover {
+  color: var(--light-color);
+}
+
+.nav-tab:hover::before {
+  width: 40px;
+}
+
+.nav-tab.router-link-active, 
+.nav-tab.router-link-exact-active {
+  color: white;
+  background-color: var(--dark-color);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.nav-tab.router-link-active::before, 
+.nav-tab.router-link-exact-active::before {
+  width: 60px;
+}
+
+/* Add icons to tabs */
+.nav-tab::after {
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  margin-left: 8px;
+  font-size: 0.9rem;
+}
+
+/* Icon for each tab */
+.nav-tab[to="/customer/dashboard"]::before {
+  content: "\f0e4"; /* dashboard icon */
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  margin-right: 8px;
+}
+
+.nav-tab[to="/customer/services"]::before {
+  content: "\f7d9"; /* tools icon */
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  margin-right: 8px;
+}
+
+.nav-tab[to="/customer/professionals"]::before {
+  content: "\f2bb"; /* id card icon */
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  margin-right: 8px;
+}
+
+.nav-tab[to="/customer/requests"]::before {
+  content: "\f46d"; /* clipboard list icon */
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+  .navigation-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 5px;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+  
+  .nav-tab {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+    flex: 0 0 auto;
+    min-width: 120px;
+  }
+  
+  .nav-tab::before {
+    display: none;
+  }
 }
 </style>

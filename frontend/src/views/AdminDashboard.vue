@@ -1,15 +1,9 @@
 <template>
   <div class="admin-dashboard">
     <div class="dashboard-header">
-      <div class="header-top">
-        <h1>Admin Dashboard</h1>
-        <button @click="logout" class="logout-btn">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
-      </div>
+
       <div v-if="admin" class="admin-welcome">
-        <h2>Welcome, {{ admin.admin_name }}</h2>
-        <p>Email: {{ admin.email }}</p>
+        <h1>Admin Dashboard</h1>
       </div>
     </div>
 
@@ -169,17 +163,35 @@ export default {
         this.dashboardData.pendingApprovals = professionals.filter(p => !p.approved && !p.blocked).slice(0, 5);
         
         // Fetch services
-        const servicesResponse = await axios.get('http://127.0.0.1:5000/admin/services', {
+        const servicesResponse = await axios.get('http://127.0.0.1:5000/admin/service', {
           headers: {
             Authorization: token
           }
         });
         this.dashboardData.totalServices = servicesResponse.data.length || 0;
         
-        // Real service requests should be fetched from backend
-        // This is where you would add the API call to get actual service requests
-        this.dashboardData.totalRequests = 0;
-        this.dashboardData.recentRequests = [];
+        // Fetch all service requests
+        const requestsResponse = await axios.get('http://127.0.0.1:5000/admin/service-requests', {
+          headers: {
+            Authorization: token
+          }
+        });
+        
+        const requests = requestsResponse.data || [];
+        this.dashboardData.totalRequests = requests.length;
+        
+        // Get recent requests (most recent 5)
+        this.dashboardData.recentRequests = requests
+          .sort((a, b) => new Date(b.date_of_request) - new Date(a.date_of_request))
+          .slice(0, 5)
+          .map(req => ({
+            id: req.id,
+            service_name: req.service_name,
+            customer_name: req.customer_name,
+            professional_name: req.professional_name,
+            status: req.status,
+            date: req.date_of_request
+          }));
         
       } catch (error) {
         console.error("Error fetching admin dashboard data:", error);

@@ -34,7 +34,8 @@ from routes import (
     SignUp, SignIn, SignOut, CustomerDashboard, adminDashboard, 
     adminService, adminCustomers, adminProfessional, CustomerServices, 
     SearchServices, SearchProfessionals, ProfessionalsByServiceType,
-    ProfessionalServiceRequests
+    ProfessionalServiceRequests, ProfessionalProfile, ServiceRequests, 
+    AllServiceRequests
 )
 
 # Add the registration API endpoint
@@ -48,9 +49,12 @@ api.add_resource(SearchProfessionals, "/admin/search-professionals")
 api.add_resource(ProfessionalsByServiceType, "/service/<int:service_id>/professionals") 
 api.add_resource(adminDashboard, "/admin/dashboard")
 api.add_resource(adminService, "/admin/service", "/admin/service/<int:service_id>")
-api.add_resource(adminCustomers, "/admin/customers", "/admin/customers/<int:user_id>")
+api.add_resource(adminCustomers, "/admin/customers", "/admin/customers/<int:customer_id>")
 api.add_resource(adminProfessional, "/admin/professionals", "/admin/professionals/<int:professional_id>")
 api.add_resource(ProfessionalServiceRequests, "/professional/requests", "/professional/requests/<int:request_id>")
+api.add_resource(ProfessionalProfile, "/professional/profile")
+api.add_resource(ServiceRequests, "/admin/service/<int:service_id>/requests")
+api.add_resource(AllServiceRequests, "/admin/service-requests")
 
 @app.route('/')
 def home():
