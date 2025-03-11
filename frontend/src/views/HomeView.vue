@@ -6,13 +6,13 @@
         <router-link to="/" class="nav-logo">UrbanAid</router-link>
         <div class="nav-links">
           <router-link to="/">Home</router-link>
-          <router-link to="/services">Services</router-link>
-          <router-link to="/about">About</router-link>
-          <router-link to="/contact">Contact</router-link>
+          <a href="#services" @click.prevent="scrollToSection('services')">Services</a>
+          <a href="#about" @click.prevent="scrollToSection('about')">About</a>
+          <a href="#contact" @click.prevent="scrollToSection('contact')">Contact</a>
         </div>
         <div class="nav-actions">
           <router-link to="/login" class="nav-btn btn-login">Login</router-link>
-          <a href="#" class="nav-btn btn-register" @click.prevent="showRegisterModal">Register</a>
+          <a href="#" class="nav-btn btn-register" @click.prevent="showRegisterModal = true">Register</a>
         </div>
       </div>
     </nav>
@@ -30,24 +30,74 @@
     </section>
 
     <!-- Services Section -->
-    <section class="services">
+    <section id="services" class="services">
       <div class="container">
         <h2>Our Services</h2>
         <div class="services-grid">
+          <div class="service-card">
+            <div class="card-icon">🔧</div>
+            <h3>Plumbing</h3>
+            <p>Expert plumbing repair and installation services</p>
+          </div>
+          <div class="service-card">
+            <div class="card-icon">🖌️</div>
+            <h3>Painting</h3>
+            <p>Professional painting for interior and exterior</p>
+          </div>
+          <div class="service-card">
+            <div class="card-icon">⚡</div>
+            <h3>Electrical</h3>
+            <p>Safe and reliable electrical services</p>
+          </div>
+          <div class="service-card">
+            <div class="card-icon">🪚</div>
+            <h3>Carpentry</h3>
+            <p>Custom woodworking and furniture repair</p>
+          </div>
           <div class="service-card">
             <div class="card-icon">🧹</div>
             <h3>Cleaning</h3>
             <p>Professional home cleaning services</p>
           </div>
-          <div class="service-card">
-            <div class="card-icon">🔧</div>
-            <h3>Repairs</h3>
-            <p>Quick and reliable repair services</p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- About Section -->
+    <section id="about" class="about">
+      <div class="container">
+        <h2>About UrbanAid</h2>
+        <div class="about-content">
+          <div class="about-text">
+            <p>UrbanAid connects skilled professionals with homeowners and businesses needing household services. Our platform ensures quality, reliability, and convenience for all your maintenance needs.</p>
+            <p>We carefully vet all service professionals to guarantee expertise and trustworthiness, while our streamlined booking system makes scheduling services quick and easy.</p>
+            <p>Whether you need emergency repairs, regular maintenance, or home improvement projects, UrbanAid is your trusted partner for all household services.</p>
           </div>
-          <div class="service-card">
-            <div class="card-icon">🪴</div>
-            <h3>Gardening</h3>
-            <p>Expert gardening and landscaping</p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+      <div class="container">
+        <h2>Contact Us</h2>
+        <div class="contact-content">
+          <div class="contact-info">
+            <div class="contact-item">
+              <i class="fas fa-envelope"></i>
+              <h3>Email</h3>
+              <p><a href="mailto:23f2004758@ds.study.iitm.ac.in">23f2004758@ds.study.iitm.ac.in</a></p>
+            </div>
+            <div class="contact-item">
+              <i class="fas fa-phone"></i>
+              <h3>Phone</h3>
+              <p>+91 123-456-7890</p>
+            </div>
+            <div class="contact-item">
+              <i class="fas fa-map-marker-alt"></i>
+              <h3>Address</h3>
+              <p>123 Urban Street, City Center<br>Chennai, Tamil Nadu</p>
+            </div>
           </div>
         </div>
       </div>
@@ -77,43 +127,63 @@
 
     <!-- Footer Section -->
     <footer class="footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-section about">
-            <h3>UrbanAid</h3>
-            <p>Your trusted partner for all household maintenance and repair needs.</p>
-            <div class="contact">
-              <span><i class="fas fa-phone"></i> &nbsp; 123-456-7890</span>
-              <span><i class="fas fa-envelope"></i> &nbsp; info@householdservices.com</span>
+      <div class="footer-top">
+        <div class="container">
+          <div class="footer-content">
+            <div class="footer-section about">
+              <div class="footer-logo">
+                <h3>UrbanAid</h3>
+                <span class="tagline">Simplifying Home Services</span>
+              </div>
+              <p>Your trusted partner for all household maintenance and repair needs.</p>
+              <div class="contact">
+                <span><i class="fas fa-phone"></i> &nbsp; 123-456-7890</span>
+                <span><i class="fas fa-envelope"></i> &nbsp; 23f2004758@ds.study.iitm.ac.in</span>
+              </div>
+              <div class="socials">
+                <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+              </div>
             </div>
-            <div class="socials">
-              <a href="#"><i class="fab fa-facebook"></i></a>
-              <a href="#"><i class="fab fa-twitter"></i></a>
-              <a href="#"><i class="fab fa-instagram"></i></a>
-              <a href="#"><i class="fab fa-linkedin"></i></a>
+            
+            <div class="footer-section links">
+              <h3>Quick Links</h3>
+              <div class="footer-links">
+                <ul>
+                  <li><router-link to="/"><i class="fas fa-angle-right"></i> Home</router-link></li>
+                  <li><a href="#services" @click.prevent="scrollToSection('services')"><i class="fas fa-angle-right"></i> Services</a></li>
+                  <li><a href="#about" @click.prevent="scrollToSection('about')"><i class="fas fa-angle-right"></i> About</a></li>
+                  <li><a href="#contact" @click.prevent="scrollToSection('contact')"><i class="fas fa-angle-right"></i> Contact</a></li>
+                </ul>
+              </div>
             </div>
-          </div>
-          <div class="footer-section links">
-            <h3>Quick Links</h3>
-            <ul>
-              <li><router-link to="/">Home</router-link></li>
-              <li><router-link to="/about">About</router-link></li>
-              <li><router-link to="/services">Services</router-link></li>
-              <li><router-link to="/contact">Contact</router-link></li>
-            </ul>
-          </div>
-          <div class="footer-section services-links">
-            <h3>Services</h3>
-            <ul>
-              <li><a href="#">Cleaning</a></li>
-              <li><a href="#">Repairs</a></li>
-              <li><a href="#">Gardening</a></li>
-              <li><a href="#">Plumbing</a></li>
-            </ul>
+            
+            <div class="footer-section services-links">
+              <h3>Services</h3>
+              <div class="footer-links">
+                <ul>
+                  <li><a href="#services" @click.prevent="scrollToSection('services')"><i class="fas fa-angle-right"></i> Plumbing</a></li>
+                  <li><a href="#services" @click.prevent="scrollToSection('services')"><i class="fas fa-angle-right"></i> Painting</a></li>
+                  <li><a href="#services" @click.prevent="scrollToSection('services')"><i class="fas fa-angle-right"></i> Electrical</a></li>
+                  <li><a href="#services" @click.prevent="scrollToSection('services')"><i class="fas fa-angle-right"></i> Carpentry</a></li>
+                  <li><a href="#services" @click.prevent="scrollToSection('services')"><i class="fas fa-angle-right"></i> Cleaning</a></li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="footer-bottom">
-          <p>&copy; {{ new Date().getFullYear() }} Household Services | All Rights Reserved</p>
+      </div>
+      
+      <div class="footer-bottom">
+        <div class="container">
+          <p>&copy; {{ new Date().getFullYear() }} UrbanAid | All Rights Reserved</p>
+          <div class="footer-bottom-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">FAQ</a>
+          </div>
         </div>
       </div>
     </footer>
@@ -156,6 +226,15 @@ export default {
     showRegisterModal() {
       // Call the parent's method to show the register modal
       this.$parent.openRegisterModal();
+    },
+    scrollToSection(sectionId) {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
     }
   }
 };
@@ -164,8 +243,8 @@ export default {
 <style scoped>
 /* Navigation bar styles */
 .main-nav {
-  background-color: var(--dark-color);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  background-color: #3F3244;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -275,9 +354,22 @@ export default {
 .hero {
   text-align: center;
   padding: 100px 0;
-  background-color: #60495A;
-  background-image: linear-gradient(135deg, #60495A 0%, #3F3244 100%);
+  background-color: #3F3244;
+  background-image: linear-gradient(135deg, #3F3244 0%, #332A37 100%);
   color: #BFC3BA;
+  border-bottom: 5px solid rgba(96, 73, 90, 0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3F3244, #60495A, #3F3244);
 }
 
 .hero h1 {
@@ -347,8 +439,21 @@ export default {
 
 .services {
   padding: 80px 0;
-  background-color: #60495A;
+  background-color: #3F3244;
   text-align: center;
+  border-top: 1px solid rgba(96, 73, 90, 0.5);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.services::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: linear-gradient(90deg, transparent, rgba(96, 73, 90, 0.3), transparent);
 }
 
 .services h2 {
@@ -378,16 +483,37 @@ export default {
 }
 
 .service-card {
-  background-color: #3F3244;
+  background-color: #332A37;
   border-radius: 10px;
   padding: 30px;
   width: 300px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(96, 73, 90, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.service-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #60495A, #A77E9B, #60495A);
+  transform: scaleX(0);
   transition: transform 0.3s ease;
 }
 
 .service-card:hover {
   transform: translateY(-10px);
+  border-color: rgba(96, 73, 90, 0.7);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.service-card:hover::before {
+  transform: scaleX(1);
 }
 
 .card-icon {
@@ -421,16 +547,37 @@ export default {
 }
 
 .option-card {
-  background-color: #3F3244;
+  background-color: #332A37;
   border-radius: 10px;
   padding: 30px;
   width: 300px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease;
+  border: 1px solid rgba(96, 73, 90, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.option-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #60495A, transparent);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
 }
 
 .option-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border-color: rgba(96, 73, 90, 0.7);
+}
+
+.option-card:hover::after {
+  transform: scaleX(1);
 }
 
 .option-card i {
@@ -465,31 +612,266 @@ export default {
   background-color: #4d3a49;
 }
 
-/* Footer Styles */
-.footer {
-  background-color: #2F2235;
+/* About Section Styles */
+.about {
+  padding: 80px 0;
+  background-color: #3F3244;
   color: #BFC3BA;
-  padding: 40px 0 20px;
-  margin-top: 60px;
+  border-top: 1px solid rgba(96, 73, 90, 0.5);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.about::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20L0 20z' fill='%2360495A' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.about h2 {
+  color: #BFC3BA;
+  font-size: 2.2rem;
+  margin-bottom: 50px;
+  text-align: center;
+  position: relative;
+  display: inline-block;
+}
+
+.about h2:after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background-color: #60495A;
+}
+
+.about-content {
+  display: flex;
+  justify-content: center;
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: rgba(47, 34, 53, 0.5);
+  padding: 30px;
+  border-radius: 15px;
+  border: 1px solid rgba(96, 73, 90, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 1;
+}
+
+.about-text {
+  line-height: 1.8;
+}
+
+.about-text p {
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+}
+
+/* Contact Section Styles */
+.contact {
+  padding: 80px 0;
+  background-color: #3F3244;
+  color: #BFC3BA;
+  text-align: center;
+  border-top: 1px solid rgba(96, 73, 90, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.contact::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 6px;
+  background: linear-gradient(90deg, transparent, rgba(96, 73, 90, 0.5), transparent);
+}
+
+.contact h2 {
+  color: #BFC3BA;
+  font-size: 2.2rem;
+  margin-bottom: 50px;
+  position: relative;
+  display: inline-block;
+}
+
+.contact h2:after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background-color: #60495A;
+}
+
+.contact-content {
+  display: flex;
+  justify-content: center;
+}
+
+.contact-info {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 40px;
+  max-width: 1000px;
+}
+
+.contact-item {
+  background-color: #332A37;
+  padding: 30px;
+  border-radius: 10px;
+  width: 250px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(96, 73, 90, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.contact-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #60495A, transparent);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.contact-item:hover {
+  transform: translateY(-10px);
+  border-color: rgba(96, 73, 90, 0.7);
+}
+
+.contact-item:hover::after {
+  transform: scaleX(1);
+}
+
+.contact-item i {
+  font-size: 2.5rem;
+  color: #60495A;
+  margin-bottom: 15px;
+}
+
+.contact-item h3 {
+  margin-bottom: 15px;
+  color: #BFC3BA;
+}
+
+.contact-item p {
+  color: #A9ACA9;
+}
+
+.contact-item a {
+  color: #A9ACA9;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contact-item a:hover {
+  color: #60495A;
+}
+
+/* Footer Styles - Updated Design */
+.footer {
+  background-color: #3F3244;
+  color: #BFC3BA;
+  margin-top: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #3F3244, #60495A, #3F3244);
+}
+
+.footer-top {
+  padding: 70px 0 40px;
+  border-bottom: 1px solid rgba(96, 73, 90, 0.3);
+  position: relative;
+}
+
+.footer-top::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 40%;
+  height: 100%;
+  background: radial-gradient(circle at bottom right, rgba(96, 73, 90, 0.1), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .footer-content {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 30px;
+  gap: 40px;
+  position: relative;
+  z-index: 1;
 }
 
 .footer-section {
   flex: 1;
-  min-width: 250px;
+  min-width: 250px; /* Increased min-width for better layout with 3 columns */
+  position: relative;
+}
+
+.footer-logo {
+  margin-bottom: 15px;
+  display: inline-block;
+}
+
+.footer-logo h3 {
+  font-size: 1.8rem;
+  margin-bottom: 5px;
+  color: #BFC3BA;
+  position: relative;
+}
+
+.tagline {
+  font-size: 0.85rem;
+  color: var(--primary-color);
+  font-style: italic;
+  display: block;
+  margin-top: -5px;
+}
+
+.footer-section p {
+  margin-bottom: 20px;
+  line-height: 1.7;
+  color: rgba(191, 195, 186, 0.8);
 }
 
 .footer-section h3 {
   font-size: 1.4rem;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   position: relative;
-  padding-bottom: 10px;
+  padding-bottom: 15px;
+  display: inline-block;
 }
 
 .footer-section h3::after {
@@ -502,90 +884,147 @@ export default {
   background-color: #60495A;
 }
 
-.footer-section p {
-  margin-bottom: 20px;
-}
-
 .contact span {
   display: block;
-  margin-bottom: 10px;
-  font-size: 0.9rem;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  color: rgba(191, 195, 186, 0.9);
+}
+
+.contact i {
+  color: var(--primary-color);
+  width: 20px;
+  text-align: center;
+  margin-right: 5px;
 }
 
 .socials {
-  margin-top: 20px;
+  margin-top: 25px;
+  display: flex;
+  gap: 12px;
 }
 
 .socials a {
-  display: inline-block;
-  width: 35px;
-  height: 35px;
-  background-color: #60495A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(96, 73, 90, 0.2);
   color: #BFC3BA;
   border-radius: 50%;
-  text-align: center;
-  line-height: 35px;
-  margin-right: 10px;
+  font-size: 1rem;
   transition: all 0.3s ease;
+  border: 1px solid rgba(96, 73, 90, 0.5);
 }
 
-socials a:hover {
-  background-color: #3F3244;
-  transform: scale(1.1);
+.socials a:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 }
 
-.footer-section ul {
+.footer-links ul {
   list-style-type: none;
   padding: 0;
 }
 
-.footer-section ul li {
-  margin-bottom: 10px;
+.footer-links ul li {
+  margin-bottom: 14px;
+  transition: transform 0.3s ease;
 }
 
-.footer-section ul li a {
-  color: #BFC3BA;
+.footer-links ul li:hover {
+  transform: translateX(5px);
+}
+
+.footer-links ul li a {
+  color: rgba(191, 195, 186, 0.8);
   text-decoration: none;
   transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
 }
 
-.footer-section ul li a:hover {
-  color: #A9ACA9;
-  padding-left: 5px;
+.footer-links ul li a i {
+  font-size: 0.8rem;
+  margin-right: 8px;
+  color: var(--primary-color);
+  transition: transform 0.3s ease;
+}
+
+.footer-links ul li a:hover {
+  color: #BFC3BA;
+}
+
+.footer-links ul li a:hover i {
+  transform: translateX(3px);
 }
 
 .footer-bottom {
+  padding: 25px 0;
   text-align: center;
-  padding-top: 30px;
-  margin-top: 30px;
-  border-top: 1px solid rgba(191, 195, 186, 0.2);
+  position: relative;
+  z-index: 1;
+  background-color: rgba(47, 34, 53, 0.3);
+}
+
+.footer-bottom .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .footer-bottom p {
   font-size: 0.9rem;
+  margin: 0;
+  color: rgba(191, 195, 186, 0.7);
+}
+
+.footer-bottom-links {
+  display: flex;
+  gap: 20px;
+}
+
+.footer-bottom-links a {
+  color: rgba(191, 195, 186, 0.7);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.3s ease;
+}
+
+.footer-bottom-links a:hover {
+  color: var(--primary-color);
+}
+
+@media (max-width: 992px) {
+  .footer-content {
+    gap: 30px;
+  }
+  
+  .footer-section {
+    min-width: calc(33% - 30px); /* Adjusted for 3 columns */
+  }
 }
 
 @media (max-width: 768px) {
-  .services-grid {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .service-card {
-    width: 100%;
-    max-width: 350px;
-  }
-  
-  .hero h1 {
-    font-size: 2.2rem;
+  .footer-top {
+    padding: 50px 0 30px;
   }
   
   .footer-content {
     flex-direction: column;
+    gap: 40px;
   }
   
   .footer-section {
-    margin-bottom: 30px;
+    min-width: 100%;
+  }
+  
+  .footer-bottom .container {
+    flex-direction: column;
+    gap: 15px;
   }
 }
 
@@ -613,6 +1052,7 @@ socials a:hover {
   padding: 30px;
   position: relative;
   animation: modalFadeIn 0.3s ease;
+  border: 1px solid rgba(96, 73, 90, 0.3);
 }
 
 @keyframes modalFadeIn {
@@ -651,19 +1091,39 @@ socials a:hover {
 }
 
 .option-card {
-  background-color: #2F2235;
+  background-color: #332A37;
   border-radius: 10px;
   padding: 30px;
   width: 45%;
   min-width: 250px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(96, 73, 90, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.option-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #60495A, transparent);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
 }
 
 .option-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border-color: rgba(96, 73, 90, 0.7);
+}
+
+.option-card:hover::after {
+  transform: scaleX(1);
 }
 
 .option-card i {
@@ -698,19 +1158,45 @@ socials a:hover {
   background-color: #4d3a49;
 }
 
-/* Media Queries */
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .options-container {
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .contact-info {
     flex-direction: column;
     align-items: center;
   }
   
-  .option-card {
+  .contact-item {
     width: 100%;
+    max-width: 300px;
   }
-  
-  .modal-content {
-    padding: 20px;
-  }
+}
+
+div {
+  background-color: #3F3244;
+}
+
+/* Override backgrounds for specific elements that need different styling */
+.service-card {
+  background-color: #332A37;
+}
+
+.about-content {
+  background-color: rgba(47, 34, 53, 0.5);
+}
+
+.contact-item {
+  background-color: #332A37;
+}
+
+.option-card {
+  background-color: #332A37;
+}
+
+.modal-content {
+  background-color: #3F3244;
 }
 </style>
