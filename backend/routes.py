@@ -674,7 +674,7 @@ class ProfessionalsByServiceType(Resource):
 class ProfessionalServiceRequests(Resource):
     @auth_required('token')
     @roles_accepted('professional')
-    @cache.cached(timeout=14, key_prefix='ProfessionalServiceRequests.get')
+    @cache.cached(timeout=30, key_prefix='ProfessionalServiceRequests.get')
     def get(self):
         # Get the current professional
         professional = ServiceProfessional.query.filter_by(user_id=current_user.id).first()
@@ -854,5 +854,3 @@ class AllServiceRequests(Resource):
             import traceback
             traceback.print_exc()
             return make_response(jsonify({"error": str(e)}), 500)
-
-# Add the new API endpoints

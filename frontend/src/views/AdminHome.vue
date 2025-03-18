@@ -22,7 +22,10 @@
           <i class="fas fa-user-tie"></i> Professionals
         </router-link>
       </div>
-      <div class="navbar-actions">
+      <div class="navbar-actions"> 
+        <button @click="downloadServiceClosedRequests" class="btn-download">
+          <i class="fas fa-file-download"></i> Download Reports
+        </button>
         <button @click="logout" class="btn-logout">
           <i class="fas fa-sign-out-alt"></i> Logout
         </button>
@@ -52,6 +55,56 @@ export default {
       
       // Redirect to login
       this.$router.push('/login');
+    },
+    
+    async downloadServiceClosedRequests() {
+      try {
+        // Show a simple alert instead of toast
+        alert('Preparing download, please wait...');
+        
+        // Use axios instead of fetch
+        const response = await axios.get('http://127.0.0.1:5000/downloadcsv');
+        const data = response.data;
+        
+        if (response.status === 200) {
+          const taskId = data['task_id'];
+          
+          const intv = setInterval(async () => {
+            try {
+              // Check if the CSV file is ready
+              const csvResponse = await axios.get(`http://127.0.0.1:5000/getcsv/${taskId}`, {
+                responseType: 'blob' // Important for downloading files
+              });
+              
+              if (csvResponse.status === 200) {
+                clearInterval(intv);
+                
+                // Create a download link for the file
+                const url = window.URL.createObjectURL(new Blob([csvResponse.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `service-requests-${Date.now()}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                
+                setTimeout(() => {
+                  alert('Download completed!');
+                }, 500);
+              }
+            } catch (err) {
+              if (err.response && err.response.status !== 400) {
+                clearInterval(intv);
+                console.error('Error checking CSV status:', err);
+              }
+              // If status is 400, task is still pending, continue waiting
+            }
+          }, 1000); // Check every second
+        }
+      } catch (error) {
+        console.error('Error downloading service requests:', error);
+        alert('Failed to download service requests');
+      }
     }
   },
   created() {
@@ -162,6 +215,30 @@ export default {
 
 .btn-logout:hover {
   background-color: #7d5e74;
+}
+
+/* New download button style */
+.btn-download {
+  background-color: #3F3244;
+  color: white;
+  border: 1px solid #60495A;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-download:hover {
+  background-color: #60495A;
+  transform: translateY(-2px);
+}
+
+.btn-download i {
+  font-size: 0.9rem;
 }
 
 /* Content area */

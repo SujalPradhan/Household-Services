@@ -16,6 +16,7 @@ class localdev(Config):
     CACHE_REDIS_HOST = "localhost"
     CACHE_REDIS_PORT = 6379
     CACHE_REDIS_DB = 2
+
 # class Config():
 #   DEBUG = False
 #   sql_alchemy_track_modifications = True

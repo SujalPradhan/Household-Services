@@ -4,6 +4,8 @@
 
       <div v-if="admin" class="admin-welcome">
         <h1>Admin Dashboard</h1>
+        <!-- Add download button -->
+
       </div>
     </div>
 
@@ -132,6 +134,7 @@ export default {
       admin: null,
       loading: true,
       loadingCharts: true,
+      downloadInProgress: false,
       dashboardData: {
         totalCustomers: 0,
         totalProfessionals: 0,
@@ -498,7 +501,10 @@ export default {
       } catch (error) {
         console.error("Error creating chart:", error);
       }
-    }
+    },
+    
+    // Add the download method from cc.js
+    
   },
   async mounted() {
     console.log("AdminDashboard component mounted");
@@ -876,5 +882,35 @@ tbody tr:nth-child(odd) {
   color: var(--muted-color);
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 5px;
+}
+
+/* Download button styles */
+.download-section {
+  margin-top: 15px;
+}
+
+.download-btn {
+  background: linear-gradient(135deg, #60495A, #3F3244);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #7d5e74, #524258);
+}
+
+.download-btn i {
+  font-size: 1rem;
 }
 </style>
