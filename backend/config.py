@@ -10,7 +10,12 @@ class Config:
 
 class localdev(Config):
     DEBUG = True
-
+    CACHE_TYPE = "RedisCache"
+    CACHE_DEFAULT_TIMEOUT = 60
+    CACHE_KEY_PREFIX = "household_services"
+    CACHE_REDIS_HOST = "localhost"
+    CACHE_REDIS_PORT = 6379
+    CACHE_REDIS_DB = 2
 # class Config():
 #   DEBUG = False
 #   sql_alchemy_track_modifications = True
@@ -33,9 +38,7 @@ class localdev(Config):
 #   # cache specific
 #   CA
 # # Celery specific
-#   broker_url = 'redis://localhost:6379/0'
-#   result_backend = 'redis://localhost:6379/1'
-#   timezone = 'Asia/Kolkata'
+
 
 #   # flask mail specific
 #   MAIL_SERVER = 'localhost'

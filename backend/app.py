@@ -6,7 +6,7 @@ from flask_security.utils import hash_password
 from json import JSONEncoder
 from models import db, user_datastore, Admin, ServiceTypeEnum, ServiceStatusEnum
 from config import localdev
-
+from caching import cache
 # Define the JSON encoder directly in this file
 class CustomJSONEncoder(JSONEncoder):
     """Custom JSON encoder that can handle our Enum types."""
@@ -29,7 +29,7 @@ db.init_app(app)
 Security(app, user_datastore)
 CORS(app)
 api = Api(app)
-
+cache.init_app(app)
 from routes import (
     SignUp, SignIn, SignOut, CustomerDashboard, adminDashboard, 
     adminService, adminCustomers, adminProfessional, CustomerServices, 

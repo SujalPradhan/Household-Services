@@ -9,6 +9,7 @@ from flask_security import auth_required, roles_accepted
 from flask_security import current_user
 from flask import session
 from datetime import datetime  # Correct import
+from caching import cache
 
 class SignUp(Resource):
     def post(self):
@@ -144,12 +145,34 @@ class SignIn(Resource):
 
 
 class SignOut(Resource):
-    @auth_required('token')
     def post(self):
-        logout_user()  # Logs out the current user
-        # Clear session and token information
-        session.clear()
-        return make_response(jsonify({"message": "Signed out successfully"}), 200)
+        try:
+            # Check if user is authenticated before trying to log them out
+            if current_user.is_authenticated:
+                # Check if the current user is a professional before logout
+                is_professional = False
+                for role in current_user.roles:
+                    if role.name == 'professional':
+                        is_professional = True
+                        break
+                
+                # If it's a professional, clear their cache
+                if is_professional:
+                    professional = ServiceProfessional.query.filter_by(user_id=current_user.id).first()
+                    if professional:
+                        cache.delete('ProfessionalServiceRequests.get')
+                
+                logout_user()  # Logs out the current user
+            
+            # Clear session even if not authenticated
+            session.clear()
+            
+            return make_response(jsonify({"message": "Signed out successfully"}), 200)
+        except Exception as e:
+            # Log the error
+            print(f"Error during signout: {str(e)}")
+            # Return success anyway to prevent client issues
+            return make_response(jsonify({"message": "Signed out", "note": "Session may have already expired"}), 200)
 
 class CustomerDashboard(Resource):
     @auth_required('token')
@@ -651,6 +674,7 @@ class ProfessionalsByServiceType(Resource):
 class ProfessionalServiceRequests(Resource):
     @auth_required('token')
     @roles_accepted('professional')
+    @cache.cached(timeout=14, key_prefix='ProfessionalServiceRequests.get')
     def get(self):
         # Get the current professional
         professional = ServiceProfessional.query.filter_by(user_id=current_user.id).first()
@@ -738,7 +762,7 @@ class ProfessionalServiceRequests(Resource):
             service_request.remarks = data['remarks']
 
         db.session.commit()
-
+        cache.delete('ProfessionalServiceRequests.get')
         return make_response(jsonify({"message": "Service request updated successfully"}), 200)
 
 # Add a new endpoint for the professional profile
