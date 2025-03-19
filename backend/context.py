@@ -1,9 +1,11 @@
 from celery import Task
-from app import create_app
-
-app, _ = create_app()
+from celery_instance import celery_app
 
 class FlaskTask(Task):
-    def __call__(self, *args: object, **kwargs: object) -> object:
+    def __call__(self, *args, **kwargs):
+        # Import app inside method to avoid circular imports
+        from app import app
+        
+        # Ensure we're running within the application context
         with app.app_context():
-            return self.run(*args, **kwargs)
+            return Task.__call__(self, *args, **kwargs)

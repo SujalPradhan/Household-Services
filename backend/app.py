@@ -4,12 +4,15 @@ from flask_restful import Api
 from flask_cors import CORS
 from flask_security.utils import hash_password
 from json import JSONEncoder
-from models import db, user_datastore, Admin, ServiceTypeEnum, ServiceStatusEnum, ServiceRequest , Service, Customer, ServiceProfessional
+from models import db, user_datastore, Admin, ServiceTypeEnum, ServiceStatusEnum, ServiceRequest, Service, Customer, ServiceProfessional
 from config import localdev
 from caching import cache
-from worker import celery_init_app
+# Import the celery_app and configure_celery function from celery_instance
+from celery_instance import celery_app, configure_celery
 import flask_excel as excel
 from celery.result import AsyncResult
+from celery.schedules import crontab
+
 # Define the JSON encoder directly in this file
 class CustomJSONEncoder(JSONEncoder):
     """Custom JSON encoder that can handle our Enum types."""
@@ -20,6 +23,7 @@ class CustomJSONEncoder(JSONEncoder):
             return obj.name
         # Let the parent class handle anything else
         return super().default(obj)
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(localdev)
@@ -29,29 +33,16 @@ def create_app():
     CORS(app)
     api = Api(app)
     cache.init_app(app)
+    # Configure Celery with app context
+    configure_celery(app)
     return app, api
-
 
 app, api = create_app()
 
-# app = Flask(__name__)
-# app.config.from_object(localdev)
+# Make app accessible for celery tasks
+celery_app.flask_app = app
 
-# # Set the custom JSON encoder for our Flask app
-# app.json_encoder = CustomJSONEncoder
-
-# # Initialize extensions
-# db.init_app(app)
-# Security(app, user_datastore)
-# CORS(app)
-# api = Api(app)
-# cache.init_app(app)
-
-celery_app = celery_init_app(app)
-# from tasks import say_hello
-from tasks import *
-
-
+# Import routes after app is created
 from routes import (
     SignUp, SignIn, SignOut, CustomerDashboard, adminDashboard, 
     adminService, adminCustomers, adminProfessional, CustomerServices, 
@@ -60,7 +51,9 @@ from routes import (
     AllServiceRequests
 )
 
-# Add the registration API endpoint
+# Now import tasks after app context is configured
+from tasks import daily_reminder, create_resource_csv
+
 api.add_resource(SignUp, "/signup")
 api.add_resource(SignIn, "/signin")
 api.add_resource(SignOut, "/signout")
@@ -77,6 +70,10 @@ api.add_resource(ProfessionalServiceRequests, "/professional/requests", "/profes
 api.add_resource(ProfessionalProfile, "/professional/profile")
 api.add_resource(ServiceRequests, "/admin/service/<int:service_id>/requests")
 api.add_resource(AllServiceRequests, "/admin/service-requests")
+
+from celery_endpoints import DownloadCSV, GetCSV
+api.add_resource(DownloadCSV, "/downloadcsv")
+api.add_resource(GetCSV, "/getcsv/<task_id>")
 
 @app.route('/')
 def home():
@@ -103,27 +100,14 @@ def create_admin():
         db.session.commit()
 
 
-
-import csv
-from io import StringIO
-from flask import Response
-
-from tasks import *
-@app.get('/downloadcsv')
-def download_csv():
-    task = create_resource_csv.delay()
-    return {"task_id": task.id}
-
-@app.get('/getcsv/<task_id>')
-def get_csv(task_id):
-    res = AsyncResult(task_id, app=celery_app)
-    if res.ready():
-        filename = res.result
-        return send_file(filename, as_attachment=True)
-    
-    else:
-        return jsonify({"status": "Task pending"}), 400
+@celery_app.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    sender.add_periodic_task(
+        crontab(hour=0, minute=12, day_of_week='*'),
+        daily_reminder.s(),
+    )
 
 if __name__ == '__main__':
     create_admin()  # Ensure admin exists before starting the app
     app.run(debug=True)
+

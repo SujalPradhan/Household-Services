@@ -16,6 +16,10 @@ class localdev(Config):
     CACHE_REDIS_HOST = "localhost"
     CACHE_REDIS_PORT = 6379
     CACHE_REDIS_DB = 2
+    SMTP_HOST = "localhost"
+    SMTP_PORT = 1025
+    SENDER_EMAIL = "23f2004759@ds.study.iitm.ac.in"
+    SENDER_PASSWORD = "Sujalp123"
 
 # class Config():
 #   DEBUG = False

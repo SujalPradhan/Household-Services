@@ -22,6 +22,7 @@
           <i class="fas fa-user-tie"></i> Professionals
         </router-link>
       </div>
+      
       <div class="navbar-actions"> 
         <button @click="downloadServiceClosedRequests" class="btn-download">
           <i class="fas fa-file-download"></i> Download Reports
