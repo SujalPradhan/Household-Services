@@ -19,7 +19,7 @@ class localdev(Config):
     SMTP_HOST = "localhost"
     SMTP_PORT = 1025
     SENDER_EMAIL = "23f2004759@ds.study.iitm.ac.in"
-    SENDER_PASSWORD = "Sujalp123"
+    SENDER_PASSWORD = ""
 
 # class Config():
 #   DEBUG = False

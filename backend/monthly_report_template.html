@@ -1,0 +1,199 @@
+monthly_report.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Service Report - {{ data.report_month }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .header p {
+            color: #7f8c8d;
+            margin-top: 0;
+        }
+        .summary-box {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background-color: #fff;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex-basis: 45%;
+            margin-bottom: 20px;
+        }
+        .stat-card.green {
+            border-color: #2ecc71;
+        }
+        .stat-card.red {
+            border-color: #e74c3c;
+        }
+        .stat-card.yellow {
+            border-color: #f1c40f;
+        }
+        .stat-card h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            font-size: 16px;
+            color: #7f8c8d;
+        }
+        .stat-card p {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .footer {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 12px;
+            margin-top: 50px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Monthly Service Activity Report</h1>
+        <p>{{ data.report_month }}</p>
+        <p>Generated on: {{ data.generated_date }}</p>
+    </div>
+
+    <div class="summary-box">
+        <h2>Monthly Summary</h2>
+        <p>This report provides an overview of all service activities for the month of {{ data.report_month }}.</p>
+    </div>
+
+    <div class="section">
+        <h2>Service Request Statistics</h2>
+        <div class="stats-container">
+            <div class="stat-card blue">
+                <h3>Total Requests</h3>
+                <p>{{ data.total_requests }}</p>
+            </div>
+            <div class="stat-card green">
+                <h3>Completed</h3>
+                <p>{{ data.completed_requests }}</p>
+            </div>
+            <div class="stat-card yellow">
+                <h3>Pending</h3>
+                <p>{{ data.pending_requests }}</p>
+            </div>
+            <div class="stat-card red">
+                <h3>Cancelled</h3>
+                <p>{{ data.cancelled_requests }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card green">
+            <h3>Completion Rate</h3>
+            <p>{{ data.completion_rate }}%</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Top 5 Requested Services</h2>
+        {% if data.top_services %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Service Name</th>
+                    <th>Request Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in data.top_services %}
+                <tr>
+                    <td>{{ service[0] }}</td>
+                    <td>{{ service[2] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No service data available for this period.</p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Top 5 Service Professionals</h2>
+        {% if data.top_professionals %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Professional Name</th>
+                    <th>Services Completed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for professional in data.top_professionals %}
+                <tr>
+                    <td>{{ professional[0] }}</td>
+                    <td>{{ professional[2] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No professional data available for this period.</p>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        <p>This is an automated report from Household Services. Please do not reply to this email.</p>
+        <p>© {{ data.generated_date.split()[-1] }} Household Services. All rights reserved.</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Activity Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .date {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .section h2 {
+            color: #3498db;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .stat-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .stat-box {
+            text-align: center;
+            min-width: 150px;
+            margin-bottom: 15px;
+        }
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Monthly Activity Report</h1>
+        <p class="date">{{ data.current_month }} | Generated on: {{ data.now_date }}</p>
+    </div>
+    
+    <div class="section">
+        <h2>Hello {{ data.customer_name }},</h2>
+        <p>Here's a summary of your activity on our Household Services platform for the month of {{ data.current_month }}.</p>
+    </div>
+    
+    <div class="section">
+        <h2>Activity Overview</h2>
+        <div class="stat-container">
+            <div class="stat-box">
+                <div class="stat-number">{{ data.total_requests }}</div>
+                <div class="stat-label">Service Requests</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ data.completed_requests }}</div>
+                <div class="stat-label">Completed Services</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ data.total_requests - data.completed_requests }}</div>
+                <div class="stat-label">Pending Services</div>
+            </div>
+        </div>
+    </div>
+    
+    {% if data.service_distribution %}
+    <div class="section">
+        <h2>Services Breakdown</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Service Type</th>
+                    <th>Number of Requests</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in data.service_distribution %}
+                <tr>
+                    <td>{{ service[0] }}</td>
+                    <td>{{ service[1] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    
+    <div class="footer">
+        <p>Thank you for choosing Household Services. If you have any questions, please contact our support team.</p>
+        <p>© {{ data.now_date.split()[-1] }} Household Services. All rights reserved.</p>
+    </div>
+</body>
+</html>

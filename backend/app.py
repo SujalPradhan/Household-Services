@@ -52,7 +52,7 @@ from routes import (
 )
 
 # Now import tasks after app context is configured
-from tasks import daily_reminder, create_resource_csv
+from tasks import daily_reminder, create_resource_csv, monthly_report_generator
 
 api.add_resource(SignUp, "/signup")
 api.add_resource(SignIn, "/signin")
@@ -103,8 +103,14 @@ def create_admin():
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(
-        crontab(hour=0, minute=12, day_of_week='*'),
+        crontab(hour=2, minute=46, day_of_week='*'),
         daily_reminder.s(),
+    )
+    
+    # Schedule monthly report generator to run on the 1st of every month at 1 AM
+    sender.add_periodic_task(
+        crontab(hour=2, minute=46),
+        monthly_report_generator.s(),
     )
 
 if __name__ == '__main__':
