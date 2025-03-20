@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_file
+from flask import Flask
 from flask_security import Security
 from flask_restful import Api
 from flask_cors import CORS
@@ -103,12 +103,12 @@ def create_admin():
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(
-        crontab(hour=16, minute=47, day_of_week='*'),
+        crontab(hour=0, minute=49, day_of_week='*'),
         daily_reminder.s(),
     )
     
     sender.add_periodic_task(
-        crontab(hour=16, minute=47),
+        crontab(hour=0, minute=49),
         monthly_report_generator.s(),
     )
 

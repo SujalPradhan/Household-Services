@@ -20,32 +20,3 @@ class localdev(Config):
     SMTP_PORT = 1025
     SENDER_EMAIL = "23f2004759@ds.study.iitm.ac.in"
     SENDER_PASSWORD = ""
-
-# class Config():
-#   DEBUG = False
-#   sql_alchemy_track_modifications = True
-
-# class DevelopmentConfig(Config):
-#   # Flask specific
-#   DEBUG = True
-
-#   # SQLAlchemy specific
-#   SQLALCHEMY_DATABASE_URI = 'sqlite:///database.sqlite3'
-
-#   # Flask-Security specific
-#   SECRET_KEY = 'secret_key'
-#   SECURITY_PASSWORD_HASH='bcrypt'
-#   SECURITY_PASSWORD_SALT='salt'
-#   SECURITY_TOKEN_AUTHENTICATION_HEADER = 'Authorization'
-#   SECURITY_JOIN_USER_ROLES = 'roles_users'
-#   SECURITY_TRACKABLE = True
-  
-#   # cache specific
-#   CA
-# # Celery specific
-
-
-#   # flask mail specific
-#   MAIL_SERVER = 'localhost'
-#   MAIL_PORT = 1025
-#   MAIL_DEFAULT_SENDER = 'donot-reply@servicenest.com'

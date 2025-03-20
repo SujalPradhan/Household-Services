@@ -93,7 +93,7 @@ def daily_reminder():
             
             # Only send email if there are pending requests
             if pending_requests:
-                to = professional.name + "@abc.com"
+                to = professional.name 
                 subject = "Daily Reminder - New Service Requests"
                 message = (f"Hello {professional.name},\n\n"
                           f"You have {len(pending_requests)} pending service requests. "
@@ -168,7 +168,7 @@ def monthly_report_generator():
             rendered_report = render_template("monthly_report.html", data=data)
             
             # Send email with report - following the pattern of daily_reminder
-            to = customer.name + "@abc.com"  # Dummy email for MailHog
+            to = customer.name  # Dummy email for MailHog
             subject = f"{current_month} Monthly Activity Report - Household Services"
             # Send the rendered HTML report
             send_message(to, subject, rendered_report)

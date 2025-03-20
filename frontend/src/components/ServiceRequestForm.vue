@@ -36,8 +36,13 @@
           id="preferredDate"
           v-model="formData.preferred_date"
           class="form-control"
+          :min="minDateTime"
           required
+          @change="validatePreferredDate"
         >
+        <div v-if="dateError" class="date-error">
+          {{ dateError }}
+        </div>
       </div>
       
       <div class="form-group">
@@ -125,6 +130,8 @@ export default {
   },
   data() {
     return {
+      dateError: null,
+      minDateTime: this.getTodayFormatted(),
       formData: {
         service_id: null,
         professional_id: '',
@@ -189,6 +196,24 @@ export default {
     }
   },
   methods: {
+    validatePreferredDate() {
+    const selectedDate = new Date(this.formData.preferred_date);
+    const today = new Date();
+    
+    if (selectedDate < today) {
+      this.dateError = "Service date cannot be in the past";
+      // Reset to tomorrow as default
+      this.formData.preferred_date = this.getTomorrowFormatted();
+    } else {
+      this.dateError = null;
+    }
+  },
+  
+  getTodayFormatted() {
+    const today = new Date();
+    // Format as YYYY-MM-DDThh:mm
+    return today.toISOString().slice(0, 16);
+  },
     async fetchProfessionals(serviceId) {
       this.loading = true;
       this.error = null;

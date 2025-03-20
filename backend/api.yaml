@@ -1,0 +1,919 @@
+openapi: 3.0.0
+info:
+  title: Household Services API
+  description: API for household services platform supporting customers, professionals, and administrators
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Development server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ServiceType:
+      type: string
+      enum: [PLUMBING, ELECTRICAL, CLEANING, CARPENTRY, PAINTING]
+    ServiceStatus:
+      type: string
+      enum: [REQUESTED, ACCEPTED, COMPLETED, CLOSED, CANCELLED]
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+          format: email
+        active:
+          type: boolean
+        pincode:
+          type: string
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        active:
+          type: boolean
+    Professional:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        service_type:
+          $ref: '#/components/schemas/ServiceType'
+        experience:
+          type: integer
+        description:
+          type: string
+        approved:
+          type: boolean
+        blocked:
+          type: boolean
+    Service:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+        description:
+          type: string
+        service_type:
+          $ref: '#/components/schemas/ServiceType'
+        created_at:
+          type: string
+          format: date-time
+    ServiceRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        service_status:
+          $ref: '#/components/schemas/ServiceStatus'
+        remarks:
+          type: string
+        customer_id:
+          type: integer
+        professional_id:
+          type: integer
+        service_id:
+          type: integer
+        date_of_request:
+          type: string
+          format: date-time
+        preferred_date:
+          type: string
+          format: date-time
+        price:
+          type: number
+security:
+  - bearerAuth: []
+paths:
+  /signup:
+    post:
+      summary: Register a new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - role
+                - name
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                role:
+                  type: string
+                  enum: [admin, customer, professional]
+                name:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                pincode:
+                  type: string
+                service_type:
+                  $ref: '#/components/schemas/ServiceType'
+                experience:
+                  type: integer
+                description:
+                  type: string
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+                  pincode:
+                    type: string
+        '400':
+          description: Invalid request data
+
+  /signin:
+    post:
+      summary: Authenticate a user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                      role:
+                        type: string
+                      authentication_token:
+                        type: string
+                      pincode:
+                        type: string
+                      name:
+                        type: string
+                      service_type:
+                        type: string
+                      experience:
+                        type: integer
+                      description:
+                        type: string
+                      approved:
+                        type: boolean
+                      blocked:
+                        type: boolean
+                      active:
+                        type: boolean
+        '401':
+          description: Authentication failed
+        '403':
+          description: Account deactivated
+
+  /signout:
+    post:
+      summary: Log out a user
+      responses:
+        '200':
+          description: Successfully logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  note:
+                    type: string
+
+  /customer/dashboard:
+    get:
+      summary: Get customer dashboard data
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customer_details:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      active:
+                        type: boolean
+                  available_services:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Service'
+                  service_history:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        service_name:
+                          type: string
+                        professional_name:
+                          type: string
+                        remarks:
+                          type: string
+                        status:
+                          type: string
+                        date_of_request:
+                          type: string
+                          format: date-time
+                        price:
+                          type: number
+        '404':
+          description: Customer profile not found
+
+  /customer/services:
+    get:
+      summary: Get all service requests for the customer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Service requests retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceRequest'
+    post:
+      summary: Create a new service request
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - service_id
+              properties:
+                service_id:
+                  type: integer
+                professional_id:
+                  type: integer
+                preferred_date:
+                  type: string
+                  format: date-time
+                price:
+                  type: number
+                remarks:
+                  type: string
+      responses:
+        '201':
+          description: Service request created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  request_id:
+                    type: integer
+        '400':
+          description: Invalid request data
+        '404':
+          description: Service or professional not found
+
+  /customer/services/{request_id}:
+    parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      summary: Update a service request
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                service_status:
+                  type: string
+                  enum: [COMPLETED, CANCELLED]
+                remarks:
+                  type: string
+      responses:
+        '200':
+          description: Service request updated successfully
+        '400':
+          description: Invalid request data or status transition
+        '403':
+          description: Unauthorized access
+        '404':
+          description: Service request not found
+    delete:
+      summary: Cancel a service request
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Service request cancelled successfully
+        '403':
+          description: Unauthorized access
+        '404':
+          description: Service request not found
+
+  /customer/search-services:
+    get:
+      summary: Search for services
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: service_type
+          in: query
+          schema:
+            $ref: '#/components/schemas/ServiceType'
+      responses:
+        '200':
+          description: Search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Service'
+
+  /service/{service_id}/professionals:
+    parameters:
+      - name: service_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get professionals for a specific service
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Professionals retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service:
+                    $ref: '#/components/schemas/Service'
+                  professionals:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Professional'
+        '404':
+          description: Service not found
+
+  /admin/dashboard:
+    get:
+      summary: Get admin dashboard data
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  admin_name:
+                    type: string
+                  email:
+                    type: string
+        '404':
+          description: Admin profile not found
+
+  /admin/service:
+    get:
+      summary: Get all services
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Services retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Service'
+    post:
+      summary: Create a new service
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - price
+                - service_type
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                description:
+                  type: string
+                service_type:
+                  $ref: '#/components/schemas/ServiceType'
+      responses:
+        '201':
+          description: Service created successfully
+        '400':
+          description: Invalid request data
+
+  /admin/service/{service_id}:
+    parameters:
+      - name: service_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get a specific service
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Service retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        '404':
+          description: Service not found
+    put:
+      summary: Update a service
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                description:
+                  type: string
+                service_type:
+                  $ref: '#/components/schemas/ServiceType'
+      responses:
+        '200':
+          description: Service updated successfully
+        '400':
+          description: Invalid request data
+        '404':
+          description: Service not found
+    delete:
+      summary: Delete a service
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Service deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  related_requests_deleted:
+                    type: integer
+        '404':
+          description: Service not found
+        '500':
+          description: Server error
+
+  /admin/customers:
+    get:
+      summary: Get all customers
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Customers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+
+  /admin/customers/{customer_id}:
+    parameters:
+      - name: customer_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      summary: Update customer status
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                active:
+                  type: boolean
+      responses:
+        '200':
+          description: Customer status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  active:
+                    type: boolean
+                  user_id:
+                    type: integer
+                  customer_id:
+                    type: integer
+                  name:
+                    type: string
+                  email:
+                    type: string
+        '404':
+          description: Customer not found
+        '500':
+          description: Server error
+
+  /admin/professionals:
+    get:
+      summary: Get all professionals
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Professionals retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Professional'
+
+  /admin/professionals/{professional_id}:
+    parameters:
+      - name: professional_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      summary: Update professional status
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                approved:
+                  type: boolean
+                blocked:
+                  type: boolean
+      responses:
+        '200':
+          description: Professional status updated successfully
+        '404':
+          description: Professional not found
+
+  /admin/search-professionals:
+    get:
+      summary: Search for professionals
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: service_type
+          in: query
+          schema:
+            $ref: '#/components/schemas/ServiceType'
+      responses:
+        '200':
+          description: Search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Professional'
+
+  /admin/service/{service_id}/requests:
+    parameters:
+      - name: service_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      summary: Get service requests for a specific service
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Service requests retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    customer_id:
+                      type: integer
+                    customer_name:
+                      type: string
+                    professional_id:
+                      type: integer
+                    professional_name:
+                      type: string
+                    status:
+                      type: string
+                    price:
+                      type: number
+                    remarks:
+                      type: string
+                    date_of_request:
+                      type: string
+                      format: date-time
+                    preferred_date:
+                      type: string
+                      format: date-time
+        '404':
+          description: Service not found
+
+  /admin/service-requests:
+    get:
+      summary: Get all service requests
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Service requests retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    service_id:
+                      type: integer
+                    service_name:
+                      type: string
+                    customer_id:
+                      type: integer
+                    customer_name:
+                      type: string
+                    customer_email:
+                      type: string
+                    professional_id:
+                      type: integer
+                    professional_name:
+                      type: string
+                    professional_email:
+                      type: string
+                    status:
+                      type: string
+                    price:
+                      type: number
+                    remarks:
+                      type: string
+                    date_of_request:
+                      type: string
+                      format: date-time
+                    preferred_date:
+                      type: string
+                      format: date-time
+        '500':
+          description: Server error
+
+  /professional/requests:
+    get:
+      summary: Get service requests for a professional
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Service requests retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    service_id:
+                      type: integer
+                    service_name:
+                      type: string
+                    customer_id:
+                      type: integer
+                    customer_name:
+                      type: string
+                    status:
+                      type: string
+                    price:
+                      type: number
+                    remarks:
+                      type: string
+                    date_of_request:
+                      type: string
+                      format: date-time
+                    preferred_date:
+                      type: string
+                      format: date-time
+        '404':
+          description: Professional profile not found
+
+  /professional/requests/{request_id}:
+    parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      summary: Update a service request status
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                service_status:
+                  type: string
+                  enum: [ACCEPTED, CLOSED, CANCELLED]
+                remarks:
+                  type: string
+      responses:
+        '200':
+          description: Service request updated successfully
+        '400':
+          description: Invalid request data or status transition
+        '403':
+          description: Unauthorized access
+        '404':
+          description: Service request or professional not found
+
+  /professional/profile:
+    get:
+      summary: Get professional profile data
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Professional'
+        '404':
+          description: Professional profile not found
+
+  /downloadcsv:
+    get:
+      summary: Trigger CSV report generation
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Report generation started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  task_id:
+                    type: string
+
+  /getcsv/{task_id}:
+    parameters:
+      - name: task_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Download generated CSV report
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Report download successful
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Report still processing
