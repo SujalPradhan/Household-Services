@@ -91,7 +91,7 @@
             <p>{{ selectedProfessional.experience }} {{ selectedProfessional.experience === 1 ? 'year' : 'years' }} of professional experience</p>
           </div>
           
-          <div class="detail-section">
+          <!-- <div class="detail-section">
             <h3><i class="fas fa-tools"></i> Services Offered</h3>
             <div class="services-offered">
               <div v-if="loadingServices" class="loading-services">
@@ -113,7 +113,7 @@
                 </li>
               </ul>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>

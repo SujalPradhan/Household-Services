@@ -55,7 +55,7 @@
                 pattern="[0-9]{6}"
               >
             </div>
-            <small class="form-text text-muted">Enter a valid 6-digit pincode</small>
+            <small class="form-text ">Enter a valid 6-digit pincode</small>
           </div>
 
           <div class="form-row">
@@ -109,12 +109,12 @@
           </div>
         </div>
 
-        <div class="form-group form-check">
+        <!-- <div class="form-group form-check">
           <input type="checkbox" id="terms" class="form-check-input" v-model="formData.termsAccepted" required>
           <label for="terms" class="form-check-label">
             I agree to the <a href="#" @click.prevent="showTerms">Terms and Conditions</a>
           </label>
-        </div>
+        </div> -->
 
         <div class="form-error" v-if="errorMessage">
           {{ errorMessage }}
@@ -466,4 +466,5 @@ button:disabled {
     max-width: 100%;
   }
 }
+
 </style>

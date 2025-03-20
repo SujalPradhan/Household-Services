@@ -44,13 +44,13 @@
           </div>
         </div>
 
-        <div class="form-extras">
+        <!-- <div class="form-extras">
           <div class="form-check">
             <input type="checkbox" id="remember" class="form-check-input" v-model="rememberMe">
-            <label for="remember" class="form-check-label">Remember me</label>
-          </div>
+            <label for="remember" class="form-check-label">Remember me</label> -->
+          <!-- </div>
           <a href="#" class="forgot-password">Forgot password?</a>
-        </div>
+        </div> -->
 
         <div v-if="errorMessage" class="error-message-box">
           <i class="fas fa-exclamation-circle"></i>
@@ -64,18 +64,18 @@
           <span v-else>Login</span>
         </button>
 
-        <div class="auth-divider">
+        <!-- <div class="auth-divider">
           <span>OR</span>
-        </div>
+        </div> -->
 
-        <div class="social-login">
+        <!-- <div class="social-login">
           <button type="button" class="btn btn-social btn-google">
             <i class="fab fa-google"></i> Login with Google
           </button>
           <button type="button" class="btn btn-social btn-facebook">
             <i class="fab fa-facebook-f"></i> Login with Facebook
           </button>
-        </div>
+        </div> -->
       </form>
 
       <div class="auth-footer">

@@ -99,11 +99,11 @@
             <button 
               v-if="request.status.toLowerCase() === 'completed'"
               @click="closeRequest(request)" 
-              class="btn btn-close"
+              class="btn btn-accept"
               :disabled="processingId === request.id"
             >
-              <i class="fas" :class="processingId === request.id ? 'fa-spinner fa-spin' : 'fa-check-circle'"></i>
-              Close Request
+            Close Request
+              <!-- <i class="fas" :class="processingId === request.id ? 'fa-spinner fa-spin' : 'fa-check-circle'"></i> -->
             </button>
             
             <!-- Cancel button -->
@@ -287,7 +287,7 @@ export default {
         'Close Request',
         `Are you sure you want to close the service request for "${request.service_name}" from ${request.customer_name}?`,
         'Close',
-        'btn-close',
+        'btn-accept',
         () => this.updateRequestStatus(request, 'CLOSED')
       );
     },

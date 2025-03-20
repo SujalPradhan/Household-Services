@@ -51,21 +51,61 @@ def create_resource_csv():
 
         return file_path
 
+# @celery_app.task
+# def daily_reminder():
+#     # Import inside the function to avoid circular imports
+#     from models import ServiceProfessional
+#     from app import app
+    
+#     # Use Flask app context explicitly
+#     with app.app_context():
+#         professionals = ServiceProfessional.query.all()
+#         for professional in professionals:
+#             to = professional.name + "@abc.com"
+#             subject = "Daily Reminder - New Service Requests"
+#             if professional.service_requests.filter(ServiceRequest.service_status == 'REQUESTED' | ServiceRequest.service_status == 'ACCEPTED').count() > 0:
+#                 send_message(to, subject, "Hello Please login and see for any new Service Requests")    
+        
+#         return "OK"
+
 @celery_app.task
 def daily_reminder():
     # Import inside the function to avoid circular imports
-    from models import ServiceProfessional
+    from models import ServiceProfessional, ServiceRequest, ServiceStatusEnum
+    from mail_service import send_message
+    from sqlalchemy import or_
     from app import app
+
     
     # Use Flask app context explicitly
     with app.app_context():
+        # Get all professionals, not just user_id 12
         professionals = ServiceProfessional.query.all()
         for professional in professionals:
-            to = professional.name + "@abc.com"
-            subject = "Daily Reminder to check your profile for new Service Requests"
-            send_message(to, subject, "Hello")
+            # Find pending requests for this professional
+            pending_requests = ServiceRequest.query.filter(
+                ServiceRequest.professional_id == professional.id,
+                or_(
+                    ServiceRequest.service_status == ServiceStatusEnum.REQUESTED,
+                    ServiceRequest.service_status == ServiceStatusEnum.ACCEPTED
+                )
+            ).all()
+            
+            # Only send email if there are pending requests
+            if pending_requests:
+                to = professional.name + "@abc.com"
+                subject = "Daily Reminder - New Service Requests"
+                message = (f"Hello {professional.name},\n\n"
+                          f"You have {len(pending_requests)} pending service requests. "
+                          f"Please login to your account to review them.\n\n"
+                          f"Thank you!")
+                
+                # Uncomment this line to actually send the email
+                send_message(to, subject, message)
+                
+
         
-        return "OK"
+        return "Reminders sent successfully"
 
 @celery_app.task
 def monthly_report_generator():
@@ -102,7 +142,7 @@ def monthly_report_generator():
             
             completed_requests = ServiceRequest.query.filter(
                 ServiceRequest.customer_id == customer.id,
-                ServiceRequest.service_status == 'COMPLETED'
+                ServiceRequest.service_status == 'CLOSED'
             ).count()
             
             # Get service type distribution

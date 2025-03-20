@@ -156,16 +156,16 @@ class SignOut(Resource):
                         is_professional = True
                         break
                 
-                # If it's a professional, clear their cache
-                if is_professional:
-                    professional = ServiceProfessional.query.filter_by(user_id=current_user.id).first()
-                    if professional:
-                        cache.delete('ProfessionalServiceRequests.get')
+                # # If it's a professional, clear their cache
+                # if is_professional:
+                #     professional = ServiceProfessional.query.filter_by(user_id=current_user.id).first()
+                #     if professional:
+                #         cache.delete('ProfessionalServiceRequests.get')
                 
                 logout_user()  # Logs out the current user
             
             # Clear session even if not authenticated
-            session.clear()
+            cache.clear()
             
             return make_response(jsonify({"message": "Signed out successfully"}), 200)
         except Exception as e:

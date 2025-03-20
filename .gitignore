@@ -49,6 +49,11 @@ coverage.xml
 instance/
 .webassets-cache
 
+# Celery related
+celerybeat-schedule
+celerybeat.pid
+celery.log*
+
 # Vue.js frontend
 node_modules/
 /dist/
@@ -74,6 +79,8 @@ selenium-debug.log
 # Local configuration files
 config.local.js
 config.local.py
+config.py
+localdev.py
 
 # Migration revisions
 migrations/versions/
@@ -107,3 +114,6 @@ yarn-error.log*
 
 # CSV files from downloads
 *.csv
+
+# Specific to this project
+celery_instance.pyc

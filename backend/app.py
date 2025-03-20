@@ -103,15 +103,16 @@ def create_admin():
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(
-        crontab(hour=2, minute=46, day_of_week='*'),
+        crontab(hour=16, minute=47, day_of_week='*'),
         daily_reminder.s(),
     )
     
-    # Schedule monthly report generator to run on the 1st of every month at 1 AM
     sender.add_periodic_task(
-        crontab(hour=2, minute=46),
+        crontab(hour=16, minute=47),
         monthly_report_generator.s(),
     )
+
+
 
 if __name__ == '__main__':
     create_admin()  # Ensure admin exists before starting the app

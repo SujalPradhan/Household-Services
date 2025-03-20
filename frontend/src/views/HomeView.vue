@@ -18,8 +18,8 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero">
-      <div class="hero-content">
+    <section class="hero"  >
+      <div class="hero-content" style="background-color: #3F3244;">
         <h1>Welcome to UrbanAid</h1>
         <p>Your one-stop solution for all household services</p>
         <div class="hero-actions">
@@ -31,31 +31,31 @@
 
     <!-- Services Section -->
     <section id="services" class="services">
-      <div class="container">
+      <div class="container" >
         <h2>Our Services</h2>
         <div class="services-grid">
-          <div class="service-card">
-            <div class="card-icon">🔧</div>
+          <div class="service-card" style="background-color: #2F2235;">
+            <div class="card-icon" style="background-color: #2F2235;">🔧</div>
             <h3>Plumbing</h3>
             <p>Expert plumbing repair and installation services</p>
           </div>
-          <div class="service-card">
-            <div class="card-icon">🖌️</div>
+          <div class="service-card" style="background-color: #2F2235;">
+            <div class="card-icon" style="background-color: #2F2235;">🖌️</div>
             <h3>Painting</h3>
             <p>Professional painting for interior and exterior</p>
           </div>
-          <div class="service-card">
-            <div class="card-icon">⚡</div>
+          <div class="service-card" style="background-color: #2F2235;">
+            <div class="card-icon" style="background-color: #2F2235;">⚡</div>
             <h3>Electrical</h3>
             <p>Safe and reliable electrical services</p>
           </div>
-          <div class="service-card">
-            <div class="card-icon">🪚</div>
+          <div class="service-card" style="background-color: #2F2235;">
+            <div class="card-icon" style="background-color: #2F2235;">🪚</div>
             <h3>Carpentry</h3>
             <p>Custom woodworking and furniture repair</p>
           </div>
-          <div class="service-card">
-            <div class="card-icon">🧹</div>
+          <div class="service-card" style="background-color: #2F2235;">
+            <div class="card-icon" style="background-color: #2F2235;">🧹</div>
             <h3>Cleaning</h3>
             <p>Professional home cleaning services</p>
           </div>
@@ -67,7 +67,7 @@
     <section id="about" class="about">
       <div class="container">
         <h2>About UrbanAid</h2>
-        <div class="about-content">
+        <div class="about-content" style="background-color: #3F3244;"> 
           <div class="about-text">
             <p>UrbanAid connects skilled professionals with homeowners and businesses needing household services. Our platform ensures quality, reliability, and convenience for all your maintenance needs.</p>
             <p>We carefully vet all service professionals to guarantee expertise and trustworthiness, while our streamlined booking system makes scheduling services quick and easy.</p>
@@ -86,17 +86,17 @@
             <div class="contact-item">
               <i class="fas fa-envelope"></i>
               <h3>Email</h3>
-              <p><a href="mailto:23f2004758@ds.study.iitm.ac.in">23f2004758@ds.study.iitm.ac.in</a></p>
+              <p><a href="mailto:23f2004758@ds.study.iitm.ac.in">23f2004759</a></p>
             </div>
             <div class="contact-item">
               <i class="fas fa-phone"></i>
               <h3>Phone</h3>
-              <p>+91 123-456-7890</p>
+              <p>+91 987654321</p>
             </div>
             <div class="contact-item">
               <i class="fas fa-map-marker-alt"></i>
               <h3>Address</h3>
-              <p>123 Urban Street, City Center<br>Chennai, Tamil Nadu</p>
+              <p>Darjeeling, India</p>
             </div>
           </div>
         </div>
@@ -137,8 +137,8 @@
               </div>
               <p>Your trusted partner for all household maintenance and repair needs.</p>
               <div class="contact">
-                <span><i class="fas fa-phone"></i> &nbsp; 123-456-7890</span>
-                <span><i class="fas fa-envelope"></i> &nbsp; 23f2004758@ds.study.iitm.ac.in</span>
+                <span><i class="fas fa-phone"></i> &nbsp; 987654321</span>
+                <span><i class="fas fa-envelope"></i> &nbsp; 23f2004759</span>
               </div>
               <div class="socials">
                 <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
@@ -192,7 +192,6 @@
 
 <script>
 // Import the CSS file
-import '@/../../css/styles.css';
 
 export default {
   name: 'HomeView',
@@ -355,7 +354,7 @@ export default {
   text-align: center;
   padding: 100px 0;
   background-color: #3F3244;
-  background-image: linear-gradient(135deg, #3F3244 0%, #332A37 100%);
+  /* background-image: linear-gradient(135deg, #3F3244 0%, #332A37 100%); */
   color: #BFC3BA;
   border-bottom: 5px solid rgba(96, 73, 90, 0.3);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -659,7 +658,7 @@ export default {
   justify-content: center;
   max-width: 900px;
   margin: 0 auto;
-  background-color: rgba(47, 34, 53, 0.5);
+  background-color: #3F3244;
   padding: 30px;
   border-radius: 15px;
   border: 1px solid rgba(96, 73, 90, 0.3);
